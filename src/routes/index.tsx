@@ -1,9 +1,16 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { Download, Loader2, UserRoundPen } from "lucide-react"
+import { ChevronDown, Download, FileJson, FileText, Loader2, Upload, UserRoundPen } from "lucide-react"
 import { CVForm, type CVData, type CVStyle } from "@/components/cv-form"
 import { CVPreview } from "@/components/cv-preview"
+import { CVAssistant } from "@/components/ai/cv-assistant"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export const Route = createFileRoute("/")({ component: CVGenerator })
 
@@ -32,13 +39,15 @@ const initialData: CVData = {
   certificates: [],
   languagesTitle: "Languages",
   languages: [],
+  portfolioTitle: "Portfolio",
+  portfolio: [],
 }
 
 const sampleData: CVData = {
   personalInfo: {
     fullName: "Bahrul Bangsawan",
-    jobTitle: "Growth Hacker & Full-Stack Engineer",
-    email: "saya@bahrul.me",
+    jobTitle: "Growthacker",
+    email: "work@bahrul.me",
     phone: "+6281234567890",
     location: "Makassar, Indonesia",
     linkedIn: "bahrulbangsawan",
@@ -87,6 +96,7 @@ const sampleData: CVData = {
       id: "edu-1",
       institution: "Universitas Hasanuddin",
       degree: "B.S. Informatics Engineering",
+      gpa: "3.50",
       startDate: "2013-09",
       endDate: "2017-08",
       current: false,
@@ -160,12 +170,39 @@ const sampleData: CVData = {
     { id: "lang-2", language: "English", proficiency: "Professional" },
     { id: "lang-3", language: "Buginese", proficiency: "Native" },
   ],
+  portfolioTitle: "Portfolio",
+  portfolio: [
+    {
+      id: "port-1",
+      name: "CV Builder",
+      url: "https://cv.bahrul.me",
+      description:
+        "AI-powered CV builder with real-time preview and PDF export",
+    },
+  ],
 }
 
 function CVGenerator() {
   const [data, setData] = useState<CVData>(initialData)
   const [style, setStyle] = useState<CVStyle>("basic")
   const [generating, setGenerating] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target?.result as string) as CVData
+        setData(imported)
+      } catch {
+        alert("Invalid JSON file. Please select a valid CV JSON export.")
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ""
+  }
 
   const handleDownloadPDF = async () => {
     if (typeof window === "undefined") return
@@ -180,9 +217,7 @@ function CVGenerator() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = data.personalInfo.fullName
-        ? `${data.personalInfo.fullName.replace(/\s+/g, "-")}-CV.pdf`
-        : "CV.pdf"
+      a.download = getFileName("pdf")
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
@@ -193,11 +228,126 @@ function CVGenerator() {
     }
   }
 
+  const getFileName = (ext: string) => {
+    const now = new Date()
+    const dt = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`
+    const name = data.personalInfo.fullName
+    return name ? `CV-${name.replace(/\s+/g, "-")}-${dt}.${ext}` : `CV-${dt}.${ext}`
+  }
+
+  const triggerDownload = (content: string, filename: string, mime: string) => {
+    const blob = new Blob([content], { type: mime })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleDownloadMarkdown = () => {
+    const lines: string[] = []
+    const { personalInfo } = data
+
+    // Header
+    if (personalInfo.fullName) lines.push(`# ${personalInfo.fullName}`)
+    if (personalInfo.jobTitle) lines.push(`**${personalInfo.jobTitle}**`)
+
+    const contact: string[] = []
+    if (personalInfo.email) contact.push(personalInfo.email)
+    if (personalInfo.phone) contact.push(personalInfo.phone)
+    if (personalInfo.location) contact.push(personalInfo.location)
+    if (personalInfo.linkedIn) contact.push(`linkedin.com/in/${personalInfo.linkedIn}`)
+    if (contact.length) lines.push("", contact.join(" | "))
+
+    // Summary
+    if (data.summary) {
+      lines.push("", `## ${data.summaryTitle}`, "", data.summary)
+    }
+
+    // Experience
+    if (data.experience.length) {
+      lines.push("", `## ${data.experienceTitle}`)
+      for (const exp of data.experience) {
+        const period = exp.current ? `${exp.startDate} – Present` : `${exp.startDate} – ${exp.endDate}`
+        lines.push("", `### ${exp.title} — ${exp.company}`, `*${period}*`)
+        if (exp.description) {
+          for (const bullet of exp.description.split("\n")) {
+            if (bullet.trim()) lines.push(`- ${bullet.trim()}`)
+          }
+        }
+      }
+    }
+
+    // Education
+    if (data.education.length) {
+      lines.push("", `## ${data.educationTitle}`)
+      for (const edu of data.education) {
+        const period = edu.current ? `${edu.startDate} – Present` : `${edu.startDate} – ${edu.endDate}`
+        lines.push("", `### ${edu.degree} — ${edu.institution}`, `*${period}*`)
+      }
+    }
+
+    // Skills
+    if (data.skills.length) {
+      lines.push("", `## ${data.skillsTitle}`)
+      for (const cat of data.skills) {
+        lines.push("", `**${cat.name}:** ${cat.items.join(", ")}`)
+      }
+    }
+
+    // Awards
+    if (data.awards.length) {
+      lines.push("", `## ${data.awardsTitle}`)
+      for (const award of data.awards) {
+        lines.push("", `### ${award.title}`, `*${award.issuer} — ${award.date}*`)
+        if (award.description) lines.push("", award.description)
+      }
+    }
+
+    // Certificates
+    if (data.certificates.length) {
+      lines.push("", `## ${data.certificatesTitle}`)
+      for (const cert of data.certificates) {
+        lines.push(`- **${cert.name}** — ${cert.issuer} (${cert.date})`)
+      }
+    }
+
+    // Languages
+    if (data.languages.length) {
+      lines.push("", `## ${data.languagesTitle}`)
+      for (const lang of data.languages) {
+        lines.push(`- ${lang.language}: ${lang.proficiency}`)
+      }
+    }
+
+    triggerDownload(lines.join("\n"), getFileName("md"), "text/markdown")
+  }
+
+  const handleDownloadJSON = () => {
+    triggerDownload(JSON.stringify(data, null, 2), getFileName("json"), "application/json")
+  }
+
   return (
     <div className="flex min-h-svh flex-col md:flex-row">
       <h1 className="sr-only">CV Builder & Resume Generator — Bahrul Bangsawan</h1>
       <div className="w-full overflow-y-auto border-b border-border md:h-svh md:w-1/2 md:border-r md:border-b-0">
-        <div className="flex items-center justify-end border-b border-border px-6 py-3">
+        <div className="flex items-center justify-end gap-2 border-b border-border px-6 py-3">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload data-icon="inline-start" />
+            Import JSON
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleImportJSON}
+          />
           <Button
             variant="outline"
             size="lg"
@@ -226,20 +376,40 @@ function CVGenerator() {
             ))}
           </div>
           <div className="ml-auto">
-            <Button size="lg" onClick={handleDownloadPDF} disabled={generating}>
-              {generating ? (
-                <Loader2 className="animate-spin" data-icon="inline-start" />
-              ) : (
-                <Download data-icon="inline-start" />
-              )}
-              {generating ? "Generating..." : "Download PDF"}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="lg" disabled={generating}>
+                  {generating ? (
+                    <Loader2 className="animate-spin" data-icon="inline-start" />
+                  ) : (
+                    <Download data-icon="inline-start" />
+                  )}
+                  {generating ? "Generating..." : "Download"}
+                  <ChevronDown className="ml-1 size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadPDF}>
+                  <FileText className="mr-2 size-4" />
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadMarkdown}>
+                  <FileText className="mr-2 size-4" />
+                  Download as Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadJSON}>
+                  <FileJson className="mr-2 size-4" />
+                  Download as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <div className="p-6">
           <CVPreview data={data} style={style} />
         </div>
       </div>
+      <CVAssistant data={data} onApply={setData} />
     </div>
   )
 }

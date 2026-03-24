@@ -1,4 +1,3 @@
-import { Mail, Phone, MapPin, Link } from "lucide-react"
 import type { CVData } from "@/components/cv-form"
 
 function formatMonth(value: string): string {
@@ -10,7 +9,7 @@ function formatMonth(value: string): string {
 }
 
 export function StandardPreview({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
 
   const hasContent =
     personalInfo.fullName ||
@@ -55,10 +54,10 @@ export function StandardPreview({ data }: { data: CVData }) {
         </div>
         {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
           <div className="space-y-0.5 text-right text-xs text-neutral-500">
-            {personalInfo.email && <p className="inline-flex items-center justify-end gap-1"><Mail className="size-3" />{personalInfo.email}</p>}
-            {personalInfo.phone && <p className="inline-flex items-center justify-end gap-1"><Phone className="size-3" />{personalInfo.phone}</p>}
-            {personalInfo.location && <p className="inline-flex items-center justify-end gap-1"><MapPin className="size-3" />{personalInfo.location}</p>}
-            {personalInfo.linkedIn && <p className="inline-flex items-center justify-end gap-1"><Link className="size-3" />linkedin.com/in/{personalInfo.linkedIn}</p>}
+            {personalInfo.email && <p>{personalInfo.email}</p>}
+            {personalInfo.phone && <p>{personalInfo.phone}</p>}
+            {personalInfo.location && <p>{personalInfo.location}</p>}
+            {personalInfo.linkedIn && <p>linkedin.com/in/{personalInfo.linkedIn}</p>}
           </div>
         )}
       </header>
@@ -103,6 +102,7 @@ export function StandardPreview({ data }: { data: CVData }) {
               {(entry.startDate || entry.endDate || entry.current) && (
                 <p className="text-xs text-neutral-500">{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</p>
               )}
+              {entry.gpa && <p className="text-xs text-neutral-500">GPA: {entry.gpa}</p>}
             </section>
           ))}
         </section>
@@ -164,6 +164,21 @@ export function StandardPreview({ data }: { data: CVData }) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {/* Portfolio */}
+      {portfolio.length > 0 && (
+        <section className="mt-5">
+          <h2 className="border-b border-neutral-200 pb-1 text-sm font-semibold text-neutral-900">{data.portfolioTitle}</h2>
+          {portfolio.map((entry) => (
+            <section key={entry.id} className="mt-3">
+              <h3 className="text-sm font-semibold text-neutral-900">
+                {entry.url ? <a href={entry.url} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
+              </h3>
+              {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
+            </section>
+          ))}
         </section>
       )}
     </article>

@@ -1,4 +1,3 @@
-import { Mail, Phone, MapPin, Link } from "lucide-react"
 import type { CVData } from "@/components/cv-form"
 
 function formatMonth(value: string): string {
@@ -10,7 +9,7 @@ function formatMonth(value: string): string {
 }
 
 export function HarvardPreview({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
 
   const hasContent =
     personalInfo.fullName ||
@@ -33,25 +32,22 @@ export function HarvardPreview({ data }: { data: CVData }) {
   return (
     <article id="cv-content" className="cv-page mx-auto">
       {/* Header */}
-      <header className="text-center">
+      <header className="mb-3 text-center">
         {personalInfo.fullName && (
           <h1 className="text-xl font-bold tracking-tight text-neutral-700">
             {personalInfo.fullName}
           </h1>
         )}
         {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-neutral-500">
-            {personalInfo.email && <span className="inline-flex items-center gap-1"><Mail className="size-3" />{personalInfo.email}</span>}
-            {personalInfo.phone && <span className="inline-flex items-center gap-1"><Phone className="size-3" />{personalInfo.phone}</span>}
-            {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{personalInfo.location}</span>}
-            {personalInfo.linkedIn && <span className="inline-flex items-center gap-1"><Link className="size-3" />linkedin.com/in/{personalInfo.linkedIn}</span>}
-          </div>
+          <p className="mt-2 text-xs text-neutral-500">
+            {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join("  |  ")}
+          </p>
         )}
       </header>
 
       {/* Summary */}
       {summary && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.summaryTitle}</h2>
           <p className="mt-2 text-xs leading-relaxed text-neutral-700">{summary}</p>
         </section>
@@ -59,7 +55,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
 
       {/* Experience */}
       {experience.some((e) => e.company || e.title) && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.experienceTitle}</h2>
           {experience.filter((e) => e.company || e.title).map((entry) => (
             <section key={entry.id} className="mt-3">
@@ -87,7 +83,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
 
       {/* Education */}
       {education.some((e) => e.institution || e.degree) && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.educationTitle}</h2>
           {education.filter((e) => e.institution || e.degree).map((entry) => (
             <section key={entry.id} className="mt-3">
@@ -101,6 +97,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
                   </span>
                 )}
               </div>
+              {entry.gpa && <p className="text-xs text-neutral-600">GPA: {entry.gpa}</p>}
             </section>
           ))}
         </section>
@@ -108,7 +105,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
 
       {/* Skills */}
       {skills.some((c) => c.items.length > 0) && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.skillsTitle}</h2>
           <div className="mt-2 space-y-1">
             {skills.filter((c) => c.items.length > 0).map((category) => (
@@ -123,7 +120,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
 
       {/* Awards */}
       {awards.some((e) => e.title) && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.awardsTitle}</h2>
           {awards.filter((e) => e.title).map((entry) => (
             <section key={entry.id} className="mt-3">
@@ -144,7 +141,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
 
       {/* Certificates */}
       {certificates.some((e) => e.name) && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.certificatesTitle}</h2>
           {certificates.filter((e) => e.name).map((entry) => (
             <section key={entry.id} className="mt-3">
@@ -165,7 +162,7 @@ export function HarvardPreview({ data }: { data: CVData }) {
 
       {/* Languages */}
       {languages.some((e) => e.language) && (
-        <section className="mt-5">
+        <section className="mt-3">
           <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.languagesTitle}</h2>
           <div className="mt-2 space-y-1">
             {languages.filter((e) => e.language).map((entry) => (
@@ -175,6 +172,23 @@ export function HarvardPreview({ data }: { data: CVData }) {
               </p>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Portfolio */}
+      {portfolio.length > 0 && (
+        <section className="mt-3">
+          <h2 className="border-t border-b border-neutral-900 py-1 text-center text-xs font-bold uppercase tracking-wider text-neutral-900">{data.portfolioTitle}</h2>
+          {portfolio.map((entry) => (
+            <section key={entry.id} className="mt-3">
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-sm font-semibold text-neutral-700">
+                  {entry.url ? <a href={entry.url} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
+                </h3>
+              </div>
+              {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
+            </section>
+          ))}
         </section>
       )}
     </article>

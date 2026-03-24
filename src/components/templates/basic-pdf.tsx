@@ -34,7 +34,7 @@ function formatMonth(value: string): string {
 }
 
 export function CVDocument({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
   return (
     <Document>
       <Page size="A4" style={s.page}>
@@ -47,7 +47,7 @@ export function CVDocument({ data }: { data: CVData }) {
             {personalInfo.jobTitle && <Text style={s.jobTitle}>{personalInfo.jobTitle}</Text>}
             {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
               <Text style={s.contact}>
-                {[personalInfo.email && `${personalInfo.email}`, personalInfo.phone && `${personalInfo.phone}`, personalInfo.location && `${personalInfo.location}`, personalInfo.linkedIn && `linkedin.com/in/${personalInfo.linkedIn}`].filter(Boolean).join("   ")}
+                {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join("  \u00b7  ")}
               </Text>
             )}
           </View>
@@ -70,6 +70,7 @@ export function CVDocument({ data }: { data: CVData }) {
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <Text style={s.entryTitle}>{[entry.degree, entry.institution].filter(Boolean).join(" \u2013 ")}</Text>
                 {(entry.startDate || entry.endDate || entry.current) && (<Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</Text>)}
+                {entry.gpa && <Text style={s.entryDate}>GPA: {entry.gpa}</Text>}
               </View>
             ))}
           </View>
@@ -105,6 +106,16 @@ export function CVDocument({ data }: { data: CVData }) {
         {languages.some((e) => e.language) && (
           <View style={s.sectionWrap}><Text style={s.sectionTitle}>{data.languagesTitle}</Text>
             {languages.filter((e) => e.language).map((entry) => (<Text key={entry.id} style={[s.bodyText, s.langRow]}>{entry.language}{entry.proficiency && <Text style={s.langProficiency}> {"\u2013"} {entry.proficiency}</Text>}</Text>))}
+          </View>
+        )}
+        {portfolio.length > 0 && (
+          <View style={s.sectionWrap}><Text style={s.sectionTitle}>{data.portfolioTitle}</Text>
+            {portfolio.map((entry) => (
+              <View key={entry.id} style={s.entryWrap} wrap={false}>
+                {entry.url ? <Link src={entry.url} style={s.entryTitle}>{entry.name}</Link> : <Text style={s.entryTitle}>{entry.name}</Text>}
+                {entry.description && <Text style={[s.bodyText, { marginTop: 2 }]}>{entry.description}</Text>}
+              </View>
+            ))}
           </View>
         )}
       </Page>

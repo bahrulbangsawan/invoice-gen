@@ -1,4 +1,3 @@
-import { Mail, Phone, MapPin, Link } from "lucide-react"
 import type { CVData } from "@/components/cv-form"
 
 function formatMonth(value: string): string {
@@ -10,7 +9,7 @@ function formatMonth(value: string): string {
 }
 
 export function BasicPreview({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
 
   return (
     <article id="cv-content" className="cv-page mx-auto">
@@ -33,12 +32,9 @@ export function BasicPreview({ data }: { data: CVData }) {
             <p className="mt-0.5 text-sm text-neutral-500">{personalInfo.jobTitle}</p>
           )}
           {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
-              {personalInfo.email && <span className="inline-flex items-center gap-1"><Mail className="size-3" />{personalInfo.email}</span>}
-              {personalInfo.phone && <span className="inline-flex items-center gap-1"><Phone className="size-3" />{personalInfo.phone}</span>}
-              {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="size-3" />{personalInfo.location}</span>}
-              {personalInfo.linkedIn && <span className="inline-flex items-center gap-1"><Link className="size-3" />linkedin.com/in/{personalInfo.linkedIn}</span>}
-            </div>
+            <p className="mt-2 text-xs text-neutral-500">
+              {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join(" \u00b7 ")}
+            </p>
           )}
         </div>
       </header>
@@ -80,6 +76,7 @@ export function BasicPreview({ data }: { data: CVData }) {
               {(entry.startDate || entry.endDate || entry.current) && (
                 <p className="text-xs text-neutral-500">{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</p>
               )}
+              {entry.gpa && <p className="text-xs text-neutral-500">GPA: {entry.gpa}</p>}
             </section>
           ))}
         </section>
@@ -137,6 +134,20 @@ export function BasicPreview({ data }: { data: CVData }) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {portfolio.length > 0 && (
+        <section className="mt-6">
+          <h2 className="border-b border-neutral-200 pb-1 text-xs font-bold uppercase tracking-wider text-neutral-900">{data.portfolioTitle}</h2>
+          {portfolio.map((entry) => (
+            <section key={entry.id} className="mt-4">
+              <h3 className="text-sm font-semibold text-neutral-900">
+                {entry.url ? <a href={entry.url} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
+              </h3>
+              {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
+            </section>
+          ))}
         </section>
       )}
     </article>

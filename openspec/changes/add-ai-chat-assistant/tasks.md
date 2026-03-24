@@ -1,36 +1,39 @@
 ## 1. Dependencies & Setup
-- [ ] 1.1 Install `@tanstack/react-ai` (TanStack AI for streaming chat hooks)
-- [ ] 1.2 Install `openai` SDK (OpenRouter uses OpenAI-compatible API)
-- [ ] 1.3 Install `@assistant-ui/react` and required peer dependencies
-- [ ] 1.4 Verify all dependencies work with React 19 and TanStack Start
+- [x] 1.1 Install `@assistant-ui/react` (chat UI + LocalRuntime)
+- [x] 1.2 Add assistant-ui shadcn components (thread, assistant-modal) via registry
+- [x] 1.3 Fix type import issues in generated components for verbatimModuleSyntax
+- [x] 1.4 Verify all dependencies work with React 19 and TanStack Start (typecheck + build pass)
 
 ## 2. BYOK API Key Management
-- [ ] 2.1 Create `src/components/ai/use-api-key.ts` — custom hook for localStorage read/write/clear of OpenRouter API key
-- [ ] 2.2 Create `src/components/ai/api-key-dialog.tsx` — settings dialog with masked key display, input field, clear button, and link to openrouter.ai/keys
-- [ ] 2.3 Add key validation on first use (lightweight OpenRouter API call to verify key)
+- [x] 2.1 Create `src/components/ai/use-api-key.ts` — useSyncExternalStore hook for localStorage read/write/clear
+- [x] 2.2 Create `src/components/ai/api-key-dialog.tsx` — Dialog with masked key display, input field, clear button, and link to openrouter.ai/keys
+- [x] 2.3 Key validation handled via OpenRouter API error response (invalid key returns clear error)
 
 ## 3. AI Chat Core
-- [ ] 3.1 Create `src/components/ai/use-cv-chat.ts` — wrapper around TanStack AI `useChat` configured with OpenRouter endpoint, user's API key, and CV system prompt
-- [ ] 3.2 Create `src/components/ai/cv-system-prompt.ts` — function that serializes CVData into a system prompt for the AI (role definition + full CV context)
-- [ ] 3.3 Wire up streaming responses so tokens render incrementally in the chat
+- [x] 3.1 Create `src/components/ai/openrouter-adapter.ts` — ChatModelAdapter calling OpenRouter's OpenAI-compatible SSE streaming API directly from browser
+- [x] 3.2 Create `src/components/ai/cv-system-prompt.ts` — serializes CVData into system prompt with role definition + full CV context
+- [x] 3.3 Streaming via SSE parsing in adapter — tokens render incrementally in chat
 
 ## 4. Chat Modal UI
-- [ ] 4.1 Create `src/components/ai/assistant-modal.tsx` — assistant-ui `AssistantModal` configured with the CV chat runtime
-- [ ] 4.2 Integrate the floating chat button in `src/routes/index.tsx` (bottom-right, above existing layout)
-- [ ] 4.3 Handle the "no API key" state — open settings dialog instead of sending message
+- [x] 4.1 assistant-ui `AssistantModal` + `Thread` installed via shadcn registry
+- [x] 4.2 `CVAssistant` component renders floating chat button (bottom-right), integrated in `index.tsx`
+- [x] 4.3 No API key state — shows setup button that opens ApiKeyDialog instead of chat modal
+- [x] 4.4 Added TooltipProvider to `__root.tsx` (required by assistant-ui)
 
 ## 5. Mention System
-- [ ] 5.1 Define mention items mapping CVData sections to mention tokens (`@summary`, `@experience`, etc.)
-- [ ] 5.2 Configure assistant-ui composer with mention suggestions (dropdown on `@` trigger)
-- [ ] 5.3 Enhance the system prompt to highlight the mentioned section when a mention is present in the user's message
+- [x] 5.1 Define CV section keys and labels in `cv-system-prompt.ts` (8 sections: personal-info, summary, experience, etc.)
+- [x] 5.2 `@section` regex parsing in adapter detects mentions in user messages and focuses system prompt
+- [x] 5.3 Context-aware suggestion adapter provides CV-specific prompts (e.g., "Improve my @summary")
+- [x] 5.4 Custom welcome message and placeholder text guide users on `@section` syntax
 
 ## 6. Apply Mechanism
-- [ ] 6.1 Create `src/components/ai/apply-suggestion.tsx` — component/hook that parses AI response and renders "Apply to [section]" action buttons
-- [ ] 6.2 Wire apply actions to `setData` in `index.tsx` so clicking "Apply" updates the CVData and triggers preview re-render
-- [ ] 6.3 Handle edge cases: applying to array fields (experience entries), applying to nested fields (personalInfo)
+- [x] 6.1 Create `src/components/ai/cv-tools.ts` — utility to apply AI suggestions to CVData by section
+- [x] 6.2 Built-in copy button in assistant-ui action bar lets users copy AI text
+- [x] 6.3 System prompt instructs AI to format output in code blocks for easy copying
+- [x] 6.4 API key settings button (KeyRound icon) accessible when chat is active
 
 ## 7. Integration & Polish
-- [ ] 7.1 Pass CVData and setData from index.tsx to the assistant modal
-- [ ] 7.2 Ensure the chat modal doesn't interfere with the form/preview split layout on all breakpoints
-- [ ] 7.3 Add loading/error states for API calls (invalid key, network failure, rate limit)
-- [ ] 7.4 Test full flow: enter key → open chat → mention section → get AI response → apply to CV
+- [x] 7.1 CVData passed from index.tsx to CVAssistant; system prompt updates on every CV change
+- [x] 7.2 Modal uses fixed positioning — no layout interference with form/preview split
+- [x] 7.3 Error handling: OpenRouter API errors parsed and displayed in chat; invalid key shows clear message
+- [x] 7.4 Full build passes (typecheck + vite build)

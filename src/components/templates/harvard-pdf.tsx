@@ -13,23 +13,27 @@ const s = StyleSheet.create({
     lineHeight: 1.5,
   },
   headerWrap: { alignItems: "center", marginBottom: 4 },
-  name: { fontSize: 16, fontWeight: 700, color: "#404040", letterSpacing: -0.3, textAlign: "center" },
-  contact: { fontSize: 8, color: "#404040", marginTop: 4, textAlign: "center" },
-  sectionWrap: { marginTop: 14 },
-  sectionTitle: {
+  name: { fontSize: 16, fontWeight: 700, color: "#171717", letterSpacing: -0.3, textAlign: "center" },
+  contact: { fontSize: 8, color: "#737373", marginTop: 6, textAlign: "center" },
+  sectionWrap: { marginTop: 10 },
+  sectionTitleWrap: {
+    borderTopWidth: 1,
+    borderTopColor: "#171717",
+    borderBottomWidth: 1,
+    borderBottomColor: "#171717",
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sectionTitleText: {
     fontSize: 8,
     fontWeight: 700,
     color: "#171717",
     textTransform: "uppercase",
     letterSpacing: 1.2,
     textAlign: "center",
-    paddingVertical: 3,
-    borderTopWidth: 1,
-    borderTopColor: "#171717",
-    borderBottomWidth: 1,
-    borderBottomColor: "#171717",
   },
-  entryWrap: { marginTop: 8 },
+  entryWrap: { marginTop: 6 },
   entryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   entryTitle: { fontSize: 10, fontWeight: "bold", color: "#404040", flex: 1 },
   entryDate: { fontSize: 8, color: "#404040", marginLeft: 8, flexShrink: 0 },
@@ -54,7 +58,7 @@ function formatMonth(value: string): string {
 }
 
 export function CVDocument({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
 
   return (
     <Document>
@@ -64,7 +68,7 @@ export function CVDocument({ data }: { data: CVData }) {
           {personalInfo.fullName && <Text style={s.name}>{personalInfo.fullName}</Text>}
           {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
             <Text style={s.contact}>
-              {[personalInfo.email && `${personalInfo.email}`, personalInfo.phone && `${personalInfo.phone}`, personalInfo.location && `${personalInfo.location}`, personalInfo.linkedIn && `linkedin.com/in/${personalInfo.linkedIn}`].filter(Boolean).join("   ")}
+              {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join("  |  ")}
             </Text>
           )}
         </View>
@@ -72,7 +76,7 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Summary */}
         {summary && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.summaryTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.summaryTitle}</Text></View>
             <Text style={[s.bodyText, { marginTop: 6 }]}>{summary}</Text>
           </View>
         )}
@@ -80,7 +84,7 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Experience */}
         {experience.some((e) => e.company || e.title) && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.experienceTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.experienceTitle}</Text></View>
             {experience.filter((e) => e.company || e.title).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <View style={s.entryRow}>
@@ -107,7 +111,7 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Education */}
         {education.some((e) => e.institution || e.degree) && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.educationTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.educationTitle}</Text></View>
             {education.filter((e) => e.institution || e.degree).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <View style={s.entryRow}>
@@ -120,6 +124,7 @@ export function CVDocument({ data }: { data: CVData }) {
                     </Text>
                   )}
                 </View>
+                {entry.gpa && <Text style={s.entryDate}>GPA: {entry.gpa}</Text>}
               </View>
             ))}
           </View>
@@ -128,7 +133,7 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Skills */}
         {skills.some((c) => c.items.length > 0) && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.skillsTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.skillsTitle}</Text></View>
             {skills.filter((c) => c.items.length > 0).map((cat) => (
               <Text key={cat.id} style={[s.bodyText, s.skillRow]}>
                 {cat.name && <Text style={s.skillLabel}>{cat.name}: </Text>}
@@ -141,7 +146,7 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Awards */}
         {awards.some((e) => e.title) && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.awardsTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.awardsTitle}</Text></View>
             {awards.filter((e) => e.title).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <View style={s.entryRow}>
@@ -160,7 +165,7 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Certificates */}
         {certificates.some((e) => e.name) && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.certificatesTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.certificatesTitle}</Text></View>
             {certificates.filter((e) => e.name).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <View style={s.entryRow}>
@@ -179,12 +184,27 @@ export function CVDocument({ data }: { data: CVData }) {
         {/* Languages */}
         {languages.some((e) => e.language) && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.languagesTitle}</Text>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.languagesTitle}</Text></View>
             {languages.filter((e) => e.language).map((entry) => (
               <Text key={entry.id} style={[s.bodyText, s.langRow]}>
                 <Text style={{ fontWeight: "bold" }}>{entry.language}</Text>
                 {entry.proficiency && <Text style={s.langProficiency}> {"\u2013"} {entry.proficiency}</Text>}
               </Text>
+            ))}
+          </View>
+        )}
+
+        {/* Portfolio */}
+        {portfolio.length > 0 && (
+          <View style={s.sectionWrap}>
+            <View style={s.sectionTitleWrap}><Text style={s.sectionTitleText}>{data.portfolioTitle}</Text></View>
+            {portfolio.map((entry) => (
+              <View key={entry.id} style={s.entryWrap} wrap={false}>
+                <View style={s.entryRow}>
+                  {entry.url ? <Link src={entry.url} style={s.entryTitle}>{entry.name}</Link> : <Text style={s.entryTitle}>{entry.name}</Text>}
+                </View>
+                {entry.description && <Text style={[s.bodyText, { marginTop: 2 }]}>{entry.description}</Text>}
+              </View>
             ))}
           </View>
         )}

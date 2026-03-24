@@ -36,7 +36,7 @@ function formatMonth(value: string): string {
 }
 
 export function CVDocument({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
   return (
     <Document>
       <Page size="A4" style={s.page}>
@@ -100,6 +100,7 @@ export function CVDocument({ data }: { data: CVData }) {
                 {(entry.startDate || entry.endDate || entry.current) && (
                   <Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</Text>
                 )}
+                {entry.gpa && <Text style={s.entryDate}>GPA: {entry.gpa}</Text>}
               </View>
             ))}
           </View>
@@ -156,6 +157,19 @@ export function CVDocument({ data }: { data: CVData }) {
                 {entry.language}
                 {entry.proficiency && <Text style={s.langProficiency}> {"\u2013"} {entry.proficiency}</Text>}
               </Text>
+            ))}
+          </View>
+        )}
+
+        {/* Portfolio */}
+        {portfolio.length > 0 && (
+          <View style={s.sectionWrap}>
+            <Text style={s.sectionTitle}>{data.portfolioTitle}</Text>
+            {portfolio.map((entry) => (
+              <View key={entry.id} style={s.entryWrap} wrap={false}>
+                {entry.url ? <Link src={entry.url} style={s.entryTitle}>{entry.name}</Link> : <Text style={s.entryTitle}>{entry.name}</Text>}
+                {entry.description && <Text style={[s.bodyText, { marginTop: 2 }]}>{entry.description}</Text>}
+              </View>
             ))}
           </View>
         )}

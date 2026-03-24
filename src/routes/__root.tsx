@@ -5,6 +5,7 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 import appCss from "../styles.css?url"
 
@@ -147,5 +148,9 @@ function useFaviconVisibility() {
 
 function RootComponent() {
   useFaviconVisibility()
-  return <Outlet />
+  return (
+    <TooltipProvider>
+      <Outlet />
+    </TooltipProvider>
+  )
 }

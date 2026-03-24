@@ -20,6 +20,8 @@ import {
 import { PhoneInput } from "@/components/reui/phone-input"
 import { Switch } from "@/components/ui/switch"
 import { Plus, X, Upload, Trash2 } from "lucide-react"
+import { FormField } from "@/components/form/form-field"
+import { SectionList } from "@/components/form/section-list"
 
 export interface PersonalInfo {
   fullName: string
@@ -46,6 +48,7 @@ export interface EducationEntry {
   id: string
   institution: string
   degree: string
+  gpa: string
   startDate: string
   endDate: string
   current: boolean
@@ -75,6 +78,13 @@ export interface LanguageEntry {
   proficiency: string
 }
 
+export interface PortfolioEntry {
+  id: string
+  name: string
+  url: string
+  description: string
+}
+
 export type CVStyle = "basic" | "harvard" | "simple" | "standard"
 
 export interface SkillCategory {
@@ -99,6 +109,8 @@ export interface CVData {
   certificates: CertificateEntry[]
   languagesTitle: string
   languages: LanguageEntry[]
+  portfolioTitle: string
+  portfolio: PortfolioEntry[]
 }
 
 interface CVFormProps {
@@ -110,11 +122,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
   const [skillInputs, setSkillInputs] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [openExperience, setOpenExperience] = useState<string[]>([])
-  const [openEducation, setOpenEducation] = useState<string[]>([])
-  const [openSkills, setOpenSkills] = useState<string[]>([])
-  const [openAwards, setOpenAwards] = useState<string[]>([])
-  const [openCertificates, setOpenCertificates] = useState<string[]>([])
-  const [openLanguages, setOpenLanguages] = useState<string[]>([])
 
   // --- Error management ---
   function updateError(key: string, error: string | undefined) {
@@ -190,10 +197,9 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       education: [
         ...data.education,
-        { id, institution: "", degree: "", startDate: "", endDate: "", current: false },
+        { id, institution: "", degree: "", gpa: "", startDate: "", endDate: "", current: false },
       ],
     })
-    setOpenEducation((prev) => [...prev, id])
   }
 
   function removeEducation(id: string) {
@@ -201,7 +207,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       education: data.education.filter((e) => e.id !== id),
     })
-    setOpenEducation((prev) => prev.filter((v) => v !== id))
     setErrors((prev) => {
       const next = { ...prev }
       delete next[`edu-${id}-institution`]
@@ -230,12 +235,10 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       skills: [...data.skills, { id, name: "", items: [] }],
     })
-    setOpenSkills((prev) => [...prev, id])
   }
 
   function removeSkillCategory(id: string) {
     onChange({ ...data, skills: data.skills.filter((c) => c.id !== id) })
-    setOpenSkills((prev) => prev.filter((v) => v !== id))
     setSkillInputs((prev) => {
       const next = { ...prev }
       delete next[id]
@@ -281,12 +284,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
     })
   }
 
-  function skillCategorySummary(category: SkillCategory) {
-    if (category.name && category.items.length > 0)
-      return `${category.name} (${category.items.length})`
-    return category.name || "Untitled Category"
-  }
-
   // --- Awards ---
   function addAward() {
     const id = crypto.randomUUID()
@@ -297,12 +294,10 @@ export function CVForm({ data, onChange }: CVFormProps) {
         { id, title: "", issuer: "", date: "", description: "", url: "" },
       ],
     })
-    setOpenAwards((prev) => [...prev, id])
   }
 
   function removeAward(id: string) {
     onChange({ ...data, awards: data.awards.filter((e) => e.id !== id) })
-    setOpenAwards((prev) => prev.filter((v) => v !== id))
   }
 
   function updateAward(
@@ -328,7 +323,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
         { id, name: "", issuer: "", date: "", credentialId: "", url: "" },
       ],
     })
-    setOpenCertificates((prev) => [...prev, id])
   }
 
   function removeCertificate(id: string) {
@@ -336,7 +330,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       certificates: data.certificates.filter((e) => e.id !== id),
     })
-    setOpenCertificates((prev) => prev.filter((v) => v !== id))
   }
 
   function updateCertificate(
@@ -362,7 +355,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
         { id, language: "", proficiency: "" },
       ],
     })
-    setOpenLanguages((prev) => [...prev, id])
   }
 
   function removeLanguage(id: string) {
@@ -370,7 +362,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       languages: data.languages.filter((e) => e.id !== id),
     })
-    setOpenLanguages((prev) => prev.filter((v) => v !== id))
   }
 
   function updateLanguage(
@@ -386,35 +377,42 @@ export function CVForm({ data, onChange }: CVFormProps) {
     })
   }
 
+  function addPortfolio() {
+    const id = crypto.randomUUID()
+    onChange({
+      ...data,
+      portfolio: [
+        ...data.portfolio,
+        { id, name: "", url: "", description: "" },
+      ],
+    })
+  }
+
+  function removePortfolio(id: string) {
+    onChange({
+      ...data,
+      portfolio: data.portfolio.filter((e) => e.id !== id),
+    })
+  }
+
+  function updatePortfolio(
+    id: string,
+    field: keyof Omit<PortfolioEntry, "id">,
+    value: string,
+  ) {
+    onChange({
+      ...data,
+      portfolio: data.portfolio.map((e) =>
+        e.id === id ? { ...e, [field]: value } : e,
+      ),
+    })
+  }
+
   // --- Accordion summaries ---
   function experienceSummary(entry: ExperienceEntry, index: number) {
     if (entry.title && entry.company)
       return `${entry.title} at ${entry.company}`
     return entry.title || entry.company || `Experience #${index + 1}`
-  }
-
-  function educationSummary(entry: EducationEntry, index: number) {
-    if (entry.degree && entry.institution)
-      return `${entry.degree} \u2013 ${entry.institution}`
-    return entry.degree || entry.institution || `Education #${index + 1}`
-  }
-
-  function awardSummary(entry: AwardEntry, index: number) {
-    if (entry.title && entry.issuer)
-      return `${entry.title} \u2013 ${entry.issuer}`
-    return entry.title || entry.issuer || `Award #${index + 1}`
-  }
-
-  function certificateSummary(entry: CertificateEntry, index: number) {
-    if (entry.name && entry.issuer)
-      return `${entry.name} \u2013 ${entry.issuer}`
-    return entry.name || entry.issuer || `Certificate #${index + 1}`
-  }
-
-  function languageSummary(entry: LanguageEntry, index: number) {
-    if (entry.language && entry.proficiency)
-      return `${entry.language} \u2013 ${entry.proficiency}`
-    return entry.language || `Language #${index + 1}`
   }
 
   return (
@@ -705,96 +703,46 @@ export function CVForm({ data, onChange }: CVFormProps) {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label>Company</Label>
-                        <Input
-                          placeholder="Company name"
-                          value={entry.company}
-                          aria-invalid={
-                            !!errors[`exp-${entry.id}-company`]
-                          }
-                          onChange={(e) => {
-                            updateExperience(
-                              entry.id,
-                              "company",
-                              e.target.value
-                            )
-                            if (
-                              errors[`exp-${entry.id}-company`] &&
-                              e.target.value.trim()
-                            )
-                              updateError(
-                                `exp-${entry.id}-company`,
-                                undefined
-                              )
-                          }}
-                          onBlur={(e) => {
-                            updateError(
-                              `exp-${entry.id}-company`,
-                              !e.target.value.trim()
-                                ? "Company is required"
-                                : undefined
-                            )
-                          }}
-                        />
-                        {errors[`exp-${entry.id}-company`] && (
-                          <p className="text-xs text-destructive">
-                            {errors[`exp-${entry.id}-company`]}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Job Title</Label>
-                        <Input
-                          placeholder="Your role"
-                          value={entry.title}
-                          aria-invalid={
-                            !!errors[`exp-${entry.id}-title`]
-                          }
-                          onChange={(e) => {
-                            updateExperience(
-                              entry.id,
-                              "title",
-                              e.target.value
-                            )
-                            if (
-                              errors[`exp-${entry.id}-title`] &&
-                              e.target.value.trim()
-                            )
-                              updateError(
-                                `exp-${entry.id}-title`,
-                                undefined
-                              )
-                          }}
-                          onBlur={(e) => {
-                            updateError(
-                              `exp-${entry.id}-title`,
-                              !e.target.value.trim()
-                                ? "Job title is required"
-                                : undefined
-                            )
-                          }}
-                        />
-                        {errors[`exp-${entry.id}-title`] && (
-                          <p className="text-xs text-destructive">
-                            {errors[`exp-${entry.id}-title`]}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Start Date</Label>
-                        <Input
-                          type="month"
-                          value={entry.startDate}
-                          onChange={(e) =>
-                            updateExperience(
-                              entry.id,
-                              "startDate",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
+                      <FormField
+                        label="Company"
+                        placeholder="Company name"
+                        value={entry.company}
+                        error={errors[`exp-${entry.id}-company`]}
+                        onChange={(v) => {
+                          updateExperience(entry.id, "company", v)
+                          if (errors[`exp-${entry.id}-company`] && v.trim())
+                            updateError(`exp-${entry.id}-company`, undefined)
+                        }}
+                        onBlur={() => {
+                          updateError(
+                            `exp-${entry.id}-company`,
+                            !entry.company.trim() ? "Company is required" : undefined
+                          )
+                        }}
+                      />
+                      <FormField
+                        label="Job Title"
+                        placeholder="Your role"
+                        value={entry.title}
+                        error={errors[`exp-${entry.id}-title`]}
+                        onChange={(v) => {
+                          updateExperience(entry.id, "title", v)
+                          if (errors[`exp-${entry.id}-title`] && v.trim())
+                            updateError(`exp-${entry.id}-title`, undefined)
+                        }}
+                        onBlur={() => {
+                          updateError(
+                            `exp-${entry.id}-title`,
+                            !entry.title.trim() ? "Job title is required" : undefined
+                          )
+                        }}
+                      />
+                      <FormField
+                        label="Start Date"
+                        type="month"
+                        value={entry.startDate}
+                        onChange={(v) => updateExperience(entry.id, "startDate", v)}
+                      />
                       <div className="space-y-1.5">
                         <Label>End Date</Label>
                         <Input
@@ -802,11 +750,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
                           value={entry.current ? "" : entry.endDate}
                           disabled={entry.current}
                           onChange={(e) =>
-                            updateExperience(
-                              entry.id,
-                              "endDate",
-                              e.target.value
-                            )
+                            updateExperience(entry.id, "endDate", e.target.value)
                           }
                         />
                         <label className="flex items-center gap-1.5">
@@ -829,20 +773,13 @@ export function CVForm({ data, onChange }: CVFormProps) {
                         </label>
                       </div>
                     </div>
-                    <div className="mt-3 space-y-1.5">
-                      <Label>Description</Label>
-                      <Textarea
-                        placeholder="Describe your responsibilities (one bullet per line)"
-                        value={entry.description}
-                        onChange={(e) =>
-                          updateExperience(
-                            entry.id,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
+                    <FormField
+                      label="Description"
+                      placeholder="Describe your responsibilities (one bullet per line)"
+                      value={entry.description}
+                      onChange={(v) => updateExperience(entry.id, "description", v)}
+                      multiline
+                    />
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -857,620 +794,381 @@ export function CVForm({ data, onChange }: CVFormProps) {
       <Separator />
 
       {/* ── Education ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.educationTitle}
-          placeholder="Education"
-          onChange={(e) =>
-            onChange({ ...data, educationTitle: e.target.value })
-          }
-        />
-        <div className="mt-3 space-y-3">
-          {data.education.length > 0 && (
-            <Accordion
-              type="multiple"
-              value={openEducation}
-              onValueChange={setOpenEducation}
-            >
-              {data.education.map((entry, index) => (
-                <AccordionItem key={entry.id} value={entry.id}>
-                  <AccordionTrigger className="items-center gap-2">
-                    <span className="flex-1 truncate">
-                      {educationSummary(entry, index)}
-                    </span>
-                    {(errors[`edu-${entry.id}-institution`] ||
-                      errors[`edu-${entry.id}-degree`]) && (
-                      <span className="size-1.5 shrink-0 rounded-full bg-destructive" />
-                    )}
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeEducation(entry.id)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label>Institution</Label>
-                        <Input
-                          placeholder="University name"
-                          value={entry.institution}
-                          aria-invalid={
-                            !!errors[`edu-${entry.id}-institution`]
-                          }
-                          onChange={(e) => {
-                            updateEducation(
-                              entry.id,
-                              "institution",
-                              e.target.value
-                            )
-                            if (
-                              errors[`edu-${entry.id}-institution`] &&
-                              e.target.value.trim()
-                            )
-                              updateError(
-                                `edu-${entry.id}-institution`,
-                                undefined
-                              )
-                          }}
-                          onBlur={(e) => {
-                            updateError(
-                              `edu-${entry.id}-institution`,
-                              !e.target.value.trim()
-                                ? "Institution is required"
-                                : undefined
-                            )
-                          }}
-                        />
-                        {errors[`edu-${entry.id}-institution`] && (
-                          <p className="text-xs text-destructive">
-                            {errors[`edu-${entry.id}-institution`]}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Degree</Label>
-                        <Input
-                          placeholder="B.S. Computer Science"
-                          value={entry.degree}
-                          aria-invalid={
-                            !!errors[`edu-${entry.id}-degree`]
-                          }
-                          onChange={(e) => {
-                            updateEducation(
-                              entry.id,
-                              "degree",
-                              e.target.value
-                            )
-                            if (
-                              errors[`edu-${entry.id}-degree`] &&
-                              e.target.value.trim()
-                            )
-                              updateError(
-                                `edu-${entry.id}-degree`,
-                                undefined
-                              )
-                          }}
-                          onBlur={(e) => {
-                            updateError(
-                              `edu-${entry.id}-degree`,
-                              !e.target.value.trim()
-                                ? "Degree is required"
-                                : undefined
-                            )
-                          }}
-                        />
-                        {errors[`edu-${entry.id}-degree`] && (
-                          <p className="text-xs text-destructive">
-                            {errors[`edu-${entry.id}-degree`]}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Start Date</Label>
-                        <Input
-                          type="month"
-                          value={entry.startDate}
-                          onChange={(e) =>
-                            updateEducation(
-                              entry.id,
-                              "startDate",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>End Date</Label>
-                        <Input
-                          type="month"
-                          value={entry.current ? "" : entry.endDate}
-                          disabled={entry.current}
-                          onChange={(e) =>
-                            updateEducation(
-                              entry.id,
-                              "endDate",
-                              e.target.value
-                            )
-                          }
-                        />
-                        <label className="flex items-center gap-1.5">
-                          <input
-                            type="checkbox"
-                            checked={entry.current}
-                            className="accent-primary"
-                            onChange={(e) => {
-                              onChange({
-                                ...data,
-                                education: data.education.map((edu) =>
-                                  edu.id === entry.id
-                                    ? { ...edu, current: e.target.checked, endDate: e.target.checked ? "" : edu.endDate }
-                                    : edu
-                                ),
-                              })
-                            }}
-                          />
-                          <span className="text-xs text-muted-foreground">Present</span>
-                        </label>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <Button variant="outline" size="sm" onClick={addEducation}>
-            <Plus /> Add Education
-          </Button>
-        </div>
-      </section>
+      <SectionList<EducationEntry>
+        title={data.educationTitle}
+        onTitleChange={(v) => onChange({ ...data, educationTitle: v })}
+        placeholder="Education"
+        items={data.education}
+        onAdd={addEducation}
+        onRemove={removeEducation}
+        addLabel="Add Education"
+        summary={(entry, index) => {
+          if (entry.degree && entry.institution)
+            return `${entry.degree} – ${entry.institution}`
+          return entry.degree || entry.institution || `Education #${index + 1}`
+        }}
+        hasError={(entry) =>
+          !!(errors[`edu-${entry.id}-institution`] || errors[`edu-${entry.id}-degree`])
+        }
+        renderContent={(entry) => (
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormField
+                label="Institution"
+                placeholder="University name"
+                value={entry.institution}
+                error={errors[`edu-${entry.id}-institution`]}
+                onChange={(v) => {
+                  updateEducation(entry.id, "institution", v)
+                  if (errors[`edu-${entry.id}-institution`] && v.trim())
+                    updateError(`edu-${entry.id}-institution`, undefined)
+                }}
+                onBlur={() => {
+                  updateError(
+                    `edu-${entry.id}-institution`,
+                    !entry.institution.trim() ? "Institution is required" : undefined
+                  )
+                }}
+              />
+              <FormField
+                label="Degree"
+                placeholder="B.S. Computer Science"
+                value={entry.degree}
+                error={errors[`edu-${entry.id}-degree`]}
+                onChange={(v) => {
+                  updateEducation(entry.id, "degree", v)
+                  if (errors[`edu-${entry.id}-degree`] && v.trim())
+                    updateError(`edu-${entry.id}-degree`, undefined)
+                }}
+                onBlur={() => {
+                  updateError(
+                    `edu-${entry.id}-degree`,
+                    !entry.degree.trim() ? "Degree is required" : undefined
+                  )
+                }}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <FormField
+                label="GPA"
+                placeholder="3.50"
+                value={entry.gpa}
+                onChange={(v) => updateEducation(entry.id, "gpa", v)}
+              />
+              <FormField
+                label="Start Date"
+                type="month"
+                value={entry.startDate}
+                onChange={(v) => updateEducation(entry.id, "startDate", v)}
+              />
+              <div className="space-y-1.5">
+                <Label>End Date</Label>
+                <Input
+                  type="month"
+                  value={entry.current ? "" : entry.endDate}
+                  disabled={entry.current}
+                  onChange={(e) => updateEducation(entry.id, "endDate", e.target.value)}
+                />
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={entry.current}
+                    className="accent-primary"
+                    onChange={(e) => {
+                      onChange({
+                        ...data,
+                        education: data.education.map((edu) =>
+                          edu.id === entry.id
+                            ? { ...edu, current: e.target.checked, endDate: e.target.checked ? "" : edu.endDate }
+                            : edu
+                        ),
+                      })
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">Present</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+      />
 
       <Separator />
 
       {/* ── Skills ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.skillsTitle}
-          placeholder="Skills"
-          onChange={(e) =>
-            onChange({ ...data, skillsTitle: e.target.value })
-          }
-        />
-        <div className="mt-3 space-y-3">
-          {data.skills.length > 0 && (
-            <Accordion
-              type="multiple"
-              value={openSkills}
-              onValueChange={setOpenSkills}
-            >
-              {data.skills.map((category) => (
-                <AccordionItem key={category.id} value={category.id}>
-                  <AccordionTrigger className="items-center gap-2">
-                    <span className="flex-1 truncate">
-                      {skillCategorySummary(category)}
-                    </span>
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeSkillCategory(category.id)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label>Category Name</Label>
-                        <Input
-                          placeholder="e.g. Hard Skills, Soft Skills, Tools"
-                          value={category.name}
-                          onChange={(e) =>
-                            updateSkillCategoryName(
-                              category.id,
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Skills</Label>
-                        <Input
-                          placeholder="Type a skill and press Enter"
-                          value={skillInputs[category.id] ?? ""}
-                          onChange={(e) =>
-                            setSkillInputs((prev) => ({
-                              ...prev,
-                              [category.id]: e.target.value,
-                            }))
-                          }
-                          onKeyDown={(e) =>
-                            handleCategorySkillKeyDown(category.id, e)
-                          }
-                        />
-                      </div>
-                      {category.items.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {category.items.map((skill) => (
-                            <Badge
-                              key={skill}
-                              variant="secondary"
-                              className="cursor-pointer"
-                              onClick={() =>
-                                removeSkillFromCategory(category.id, skill)
-                              }
-                            >
-                              {skill}
-                              <X className="size-2.5" />
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <Button variant="outline" size="sm" onClick={addSkillCategory}>
-            <Plus /> Add Category
-          </Button>
-        </div>
-      </section>
+      <SectionList<SkillCategory>
+        title={data.skillsTitle}
+        onTitleChange={(v) => onChange({ ...data, skillsTitle: v })}
+        placeholder="Skills"
+        items={data.skills}
+        onAdd={addSkillCategory}
+        onRemove={removeSkillCategory}
+        addLabel="Add Category"
+        summary={(category) => {
+          if (category.name && category.items.length > 0)
+            return `${category.name} (${category.items.length})`
+          return category.name || "Untitled Category"
+        }}
+        renderContent={(category) => (
+          <div className="space-y-3">
+            <FormField
+              label="Category Name"
+              placeholder="e.g. Hard Skills, Soft Skills, Tools"
+              value={category.name}
+              onChange={(v) => updateSkillCategoryName(category.id, v)}
+            />
+            <div className="space-y-1.5">
+              <Label>Skills</Label>
+              <Input
+                placeholder="Type a skill and press Enter"
+                value={skillInputs[category.id] ?? ""}
+                onChange={(e) =>
+                  setSkillInputs((prev) => ({
+                    ...prev,
+                    [category.id]: e.target.value,
+                  }))
+                }
+                onKeyDown={(e) =>
+                  handleCategorySkillKeyDown(category.id, e)
+                }
+              />
+            </div>
+            {category.items.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {category.items.map((skill) => (
+                  <Badge
+                    key={skill}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() =>
+                      removeSkillFromCategory(category.id, skill)
+                    }
+                  >
+                    {skill}
+                    <X className="size-2.5" />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      />
 
       <Separator />
 
       {/* ── Awards ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.awardsTitle}
-          placeholder="Awards"
-          onChange={(e) =>
-            onChange({ ...data, awardsTitle: e.target.value })
-          }
-        />
-        <div className="mt-3 space-y-3">
-          {data.awards.length > 0 && (
-            <Accordion
-              type="multiple"
-              value={openAwards}
-              onValueChange={setOpenAwards}
-            >
-              {data.awards.map((entry, index) => (
-                <AccordionItem key={entry.id} value={entry.id}>
-                  <AccordionTrigger className="items-center gap-2">
-                    <span className="flex-1 truncate">
-                      {awardSummary(entry, index)}
-                    </span>
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeAward(entry.id)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label>Title</Label>
-                        <Input
-                          placeholder="Award name"
-                          value={entry.title}
-                          onChange={(e) =>
-                            updateAward(entry.id, "title", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Issuer</Label>
-                        <Input
-                          placeholder="Issuing organization"
-                          value={entry.issuer}
-                          onChange={(e) =>
-                            updateAward(entry.id, "issuer", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Date</Label>
-                        <Input
-                          type="month"
-                          value={entry.date}
-                          onChange={(e) =>
-                            updateAward(entry.id, "date", e.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 space-y-1.5">
-                      <Label>Description</Label>
-                      <Textarea
-                        placeholder="Brief description"
-                        value={entry.description}
-                        onChange={(e) =>
-                          updateAward(
-                            entry.id,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="mt-3 space-y-1.5">
-                      <Label>URL</Label>
-                      <Input
-                        type="url"
-                        placeholder="https://..."
-                        value={entry.url}
-                        aria-invalid={!!errors[`award-${entry.id}-url`]}
-                        onChange={(e) => {
-                          updateAward(entry.id, "url", e.target.value)
-                          if (
-                            errors[`award-${entry.id}-url`] &&
-                            (!e.target.value || /^https?:\/\/.+/.test(e.target.value))
-                          )
-                            updateError(`award-${entry.id}-url`, undefined)
-                        }}
-                        onBlur={(e) => {
-                          const v = e.target.value
-                          updateError(
-                            `award-${entry.id}-url`,
-                            v && !/^https?:\/\/.+/.test(v)
-                              ? "Must start with http:// or https://"
-                              : undefined
-                          )
-                        }}
-                      />
-                      {errors[`award-${entry.id}-url`] && (
-                        <p className="text-xs text-destructive">
-                          {errors[`award-${entry.id}-url`]}
-                        </p>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <Button variant="outline" size="sm" onClick={addAward}>
-            <Plus /> Add Award
-          </Button>
-        </div>
-      </section>
+      <SectionList<AwardEntry>
+        title={data.awardsTitle}
+        onTitleChange={(v) => onChange({ ...data, awardsTitle: v })}
+        placeholder="Awards"
+        items={data.awards}
+        onAdd={addAward}
+        onRemove={removeAward}
+        addLabel="Add Award"
+        summary={(entry, index) => {
+          if (entry.title && entry.issuer)
+            return `${entry.title} – ${entry.issuer}`
+          return entry.title || entry.issuer || `Award #${index + 1}`
+        }}
+        renderContent={(entry) => (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormField
+                label="Title"
+                placeholder="Award name"
+                value={entry.title}
+                onChange={(v) => updateAward(entry.id, "title", v)}
+              />
+              <FormField
+                label="Issuer"
+                placeholder="Issuing organization"
+                value={entry.issuer}
+                onChange={(v) => updateAward(entry.id, "issuer", v)}
+              />
+              <FormField
+                label="Date"
+                type="month"
+                value={entry.date}
+                onChange={(v) => updateAward(entry.id, "date", v)}
+              />
+            </div>
+            <FormField
+              label="Description"
+              placeholder="Brief description"
+              value={entry.description}
+              onChange={(v) => updateAward(entry.id, "description", v)}
+              multiline
+            />
+            <FormField
+              label="URL"
+              type="url"
+              placeholder="https://..."
+              value={entry.url}
+              error={errors[`award-${entry.id}-url`]}
+              onChange={(v) => {
+                updateAward(entry.id, "url", v)
+                if (
+                  errors[`award-${entry.id}-url`] &&
+                  (!v || /^https?:\/\/.+/.test(v))
+                )
+                  updateError(`award-${entry.id}-url`, undefined)
+              }}
+              onBlur={() => {
+                updateError(
+                  `award-${entry.id}-url`,
+                  entry.url && !/^https?:\/\/.+/.test(entry.url)
+                    ? "Must start with http:// or https://"
+                    : undefined
+                )
+              }}
+            />
+          </>
+        )}
+      />
 
       <Separator />
 
       {/* ── Certificates ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.certificatesTitle}
-          placeholder="Certificates"
-          onChange={(e) =>
-            onChange({ ...data, certificatesTitle: e.target.value })
-          }
-        />
-        <div className="mt-3 space-y-3">
-          {data.certificates.length > 0 && (
-            <Accordion
-              type="multiple"
-              value={openCertificates}
-              onValueChange={setOpenCertificates}
-            >
-              {data.certificates.map((entry, index) => (
-                <AccordionItem key={entry.id} value={entry.id}>
-                  <AccordionTrigger className="items-center gap-2">
-                    <span className="flex-1 truncate">
-                      {certificateSummary(entry, index)}
-                    </span>
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeCertificate(entry.id)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label>Certificate Name</Label>
-                        <Input
-                          placeholder="Certificate name"
-                          value={entry.name}
-                          onChange={(e) =>
-                            updateCertificate(
-                              entry.id,
-                              "name",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Issuer</Label>
-                        <Input
-                          placeholder="Issuing organization"
-                          value={entry.issuer}
-                          onChange={(e) =>
-                            updateCertificate(
-                              entry.id,
-                              "issuer",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Date</Label>
-                        <Input
-                          type="month"
-                          value={entry.date}
-                          onChange={(e) =>
-                            updateCertificate(
-                              entry.id,
-                              "date",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Credential ID</Label>
-                        <Input
-                          placeholder="Optional credential ID"
-                          value={entry.credentialId}
-                          onChange={(e) =>
-                            updateCertificate(
-                              entry.id,
-                              "credentialId",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 space-y-1.5">
-                      <Label>URL</Label>
-                      <Input
-                        type="url"
-                        placeholder="https://..."
-                        value={entry.url}
-                        aria-invalid={!!errors[`cert-${entry.id}-url`]}
-                        onChange={(e) => {
-                          updateCertificate(entry.id, "url", e.target.value)
-                          if (
-                            errors[`cert-${entry.id}-url`] &&
-                            (!e.target.value || /^https?:\/\/.+/.test(e.target.value))
-                          )
-                            updateError(`cert-${entry.id}-url`, undefined)
-                        }}
-                        onBlur={(e) => {
-                          const v = e.target.value
-                          updateError(
-                            `cert-${entry.id}-url`,
-                            v && !/^https?:\/\/.+/.test(v)
-                              ? "Must start with http:// or https://"
-                              : undefined
-                          )
-                        }}
-                      />
-                      {errors[`cert-${entry.id}-url`] && (
-                        <p className="text-xs text-destructive">
-                          {errors[`cert-${entry.id}-url`]}
-                        </p>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <Button variant="outline" size="sm" onClick={addCertificate}>
-            <Plus /> Add Certificate
-          </Button>
-        </div>
-      </section>
+      <SectionList<CertificateEntry>
+        title={data.certificatesTitle}
+        onTitleChange={(v) => onChange({ ...data, certificatesTitle: v })}
+        placeholder="Certificates"
+        items={data.certificates}
+        onAdd={addCertificate}
+        onRemove={removeCertificate}
+        addLabel="Add Certificate"
+        summary={(entry, index) => {
+          if (entry.name && entry.issuer)
+            return `${entry.name} – ${entry.issuer}`
+          return entry.name || entry.issuer || `Certificate #${index + 1}`
+        }}
+        renderContent={(entry) => (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormField
+                label="Certificate Name"
+                placeholder="Certificate name"
+                value={entry.name}
+                onChange={(v) => updateCertificate(entry.id, "name", v)}
+              />
+              <FormField
+                label="Issuer"
+                placeholder="Issuing organization"
+                value={entry.issuer}
+                onChange={(v) => updateCertificate(entry.id, "issuer", v)}
+              />
+              <FormField
+                label="Date"
+                type="month"
+                value={entry.date}
+                onChange={(v) => updateCertificate(entry.id, "date", v)}
+              />
+              <FormField
+                label="Credential ID"
+                placeholder="Optional credential ID"
+                value={entry.credentialId}
+                onChange={(v) => updateCertificate(entry.id, "credentialId", v)}
+              />
+            </div>
+            <FormField
+              label="URL"
+              type="url"
+              placeholder="https://..."
+              value={entry.url}
+              error={errors[`cert-${entry.id}-url`]}
+              onChange={(v) => {
+                updateCertificate(entry.id, "url", v)
+                if (
+                  errors[`cert-${entry.id}-url`] &&
+                  (!v || /^https?:\/\/.+/.test(v))
+                )
+                  updateError(`cert-${entry.id}-url`, undefined)
+              }}
+              onBlur={() => {
+                updateError(
+                  `cert-${entry.id}-url`,
+                  entry.url && !/^https?:\/\/.+/.test(entry.url)
+                    ? "Must start with http:// or https://"
+                    : undefined
+                )
+              }}
+            />
+          </>
+        )}
+      />
 
       <Separator />
 
       {/* ── Languages ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.languagesTitle}
-          placeholder="Languages"
-          onChange={(e) =>
-            onChange({ ...data, languagesTitle: e.target.value })
-          }
-        />
-        <div className="mt-3 space-y-3">
-          {data.languages.length > 0 && (
-            <Accordion
-              type="multiple"
-              value={openLanguages}
-              onValueChange={setOpenLanguages}
-            >
-              {data.languages.map((entry, index) => (
-                <AccordionItem key={entry.id} value={entry.id}>
-                  <AccordionTrigger className="items-center gap-2">
-                    <span className="flex-1 truncate">
-                      {languageSummary(entry, index)}
-                    </span>
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeLanguage(entry.id)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label>Language</Label>
-                        <Input
-                          placeholder="e.g. English"
-                          value={entry.language}
-                          onChange={(e) =>
-                            updateLanguage(
-                              entry.id,
-                              "language",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Proficiency</Label>
-                        <Input
-                          placeholder="e.g. Native, Fluent, Intermediate"
-                          value={entry.proficiency}
-                          onChange={(e) =>
-                            updateLanguage(
-                              entry.id,
-                              "proficiency",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <Button variant="outline" size="sm" onClick={addLanguage}>
-            <Plus /> Add Language
-          </Button>
-        </div>
-      </section>
+      <SectionList<LanguageEntry>
+        title={data.languagesTitle}
+        onTitleChange={(v) => onChange({ ...data, languagesTitle: v })}
+        placeholder="Languages"
+        items={data.languages}
+        onAdd={addLanguage}
+        onRemove={removeLanguage}
+        addLabel="Add Language"
+        summary={(entry, index) => {
+          if (entry.language && entry.proficiency)
+            return `${entry.language} – ${entry.proficiency}`
+          return entry.language || `Language #${index + 1}`
+        }}
+        renderContent={(entry) => (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FormField
+              label="Language"
+              placeholder="e.g. English"
+              value={entry.language}
+              onChange={(v) => updateLanguage(entry.id, "language", v)}
+            />
+            <FormField
+              label="Proficiency"
+              placeholder="e.g. Native, Fluent, Intermediate"
+              value={entry.proficiency}
+              onChange={(v) => updateLanguage(entry.id, "proficiency", v)}
+            />
+          </div>
+        )}
+      />
+
+      <Separator />
+
+      {/* ── Portfolio ── */}
+      <SectionList<PortfolioEntry>
+        title={data.portfolioTitle}
+        onTitleChange={(v) => onChange({ ...data, portfolioTitle: v })}
+        placeholder="Portfolio"
+        items={data.portfolio}
+        onAdd={addPortfolio}
+        onRemove={removePortfolio}
+        addLabel="Add Portfolio"
+        summary={(entry, index) => entry.name || `Portfolio ${index + 1}`}
+        renderContent={(entry) => (
+          <div className="grid gap-3">
+            <FormField
+              label="Name"
+              placeholder="e.g. My Project"
+              value={entry.name}
+              onChange={(v) => updatePortfolio(entry.id, "name", v)}
+            />
+            <FormField
+              label="URL"
+              type="url"
+              placeholder="https://..."
+              value={entry.url}
+              onChange={(v) => updatePortfolio(entry.id, "url", v)}
+            />
+            <FormField
+              label="Description"
+              placeholder="Brief description of the project"
+              value={entry.description}
+              onChange={(v) => updatePortfolio(entry.id, "description", v)}
+              multiline
+              rows={2}
+            />
+          </div>
+        )}
+      />
     </div>
   )
 }
