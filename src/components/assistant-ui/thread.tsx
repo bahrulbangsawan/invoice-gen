@@ -182,7 +182,8 @@ const CV_MENTION_ITEMS = [
   { id: "certificates", type: "cv-section", label: "Certificates" },
   { id: "languages", type: "cv-section", label: "Languages" },
   { id: "personal-info", type: "cv-section", label: "Personal Info" },
-  { id: "portfolio", type: "cv-section", label: "Portfolio" },
+  { id: "projects", type: "cv-section", label: "Projects" },
+  { id: "volunteer", type: "cv-section", label: "Volunteer" },
 ];
 
 const cvMentionFormatter = {
@@ -318,7 +319,7 @@ const Composer: FC = () => {
 };
 
 const MENTION_PATTERN =
-  /@(summary|experience|education|skills|awards|certificates|languages|personal-info|portfolio)\b/;
+  /@(summary|experience|education|skills|awards|certificates|languages|personal-info|projects|volunteer)\b/;
 
 const ComposerAction: FC = () => {
   const hasMention = useAuiState((s) => MENTION_PATTERN.test(s.composer.text));

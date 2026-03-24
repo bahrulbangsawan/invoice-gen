@@ -1,4 +1,5 @@
 import type { CVData } from "@/components/cv-form"
+import { ensureUrl, formatPhoneDisplay } from "@/lib/utils"
 
 function formatMonth(value: string): string {
   if (!value) return ""
@@ -8,8 +9,12 @@ function formatMonth(value: string): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" })
 }
 
+const WORK_TYPE_LABELS: Record<string, string> = { "full-time": "Full-Time", "part-time": "Part-Time", internship: "Internship" }
+const LOCATION_LABELS: Record<string, string> = { "work-from-office": "Work From Office", "work-from-anywhere": "Work From Anywhere", hybrid: "Hybrid" }
+const EDUCATION_CATEGORY_LABELS: Record<string, string> = { university: "University", college: "College / Institute", school: "School (K-12)", polytechnic: "Polytechnic / Vocational", academy: "Academy", "language-center": "Language / Tuition Center", "online-platform": "Online Learning Platform", "professional-association": "Professional Association" }
+
 export function SimplePreview({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, projects, volunteer } = data
 
   const hasContent =
     personalInfo.fullName ||
@@ -19,7 +24,8 @@ export function SimplePreview({ data }: { data: CVData }) {
     skills.some((c) => c.items.length > 0) ||
     awards.some((e) => e.title) ||
     certificates.some((e) => e.name) ||
-    languages.some((e) => e.language)
+    languages.some((e) => e.language) ||
+    volunteer.some((e) => e.organization || e.role)
 
   if (!hasContent) {
     return (
@@ -43,7 +49,7 @@ export function SimplePreview({ data }: { data: CVData }) {
         )}
         {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
           <p className="mt-2 text-xs text-neutral-500">
-            {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join(" \u00b7 ")}
+            {[personalInfo.email, personalInfo.phone ? formatPhoneDisplay(personalInfo.phone) : "", personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join(" \u00b7 ")}
           </p>
         )}
       </header>
@@ -71,6 +77,11 @@ export function SimplePreview({ data }: { data: CVData }) {
                     : "",
                 ].filter(Boolean).join(" | ")}
               </p>
+              {(entry.workType || entry.locationPolicy) && (
+                <p className="mt-1 text-xs text-neutral-500">
+                  {[WORK_TYPE_LABELS[entry.workType], LOCATION_LABELS[entry.locationPolicy]].filter(Boolean).join(" \u00b7 ")}
+                </p>
+              )}
               {entry.description && (
                 <ul className="mt-1.5 list-disc space-y-0.5 pl-4">
                   {entry.description.split("\n").filter((l) => l.trim()).map((line, i) => (
@@ -99,6 +110,9 @@ export function SimplePreview({ data }: { data: CVData }) {
                 ].filter(Boolean).join(" | ")}
               </p>
               {entry.gpa && <p className="text-xs text-neutral-600">GPA: {entry.gpa}</p>}
+              {entry.category && (
+                <p className="text-xs text-neutral-500">{EDUCATION_CATEGORY_LABELS[entry.category]}</p>
+              )}
             </section>
           ))}
         </section>
@@ -131,7 +145,7 @@ export function SimplePreview({ data }: { data: CVData }) {
               </p>
               {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
               {entry.url && (
-                <a href={entry.url} className="mt-1 block text-xs text-neutral-900 underline" target="_blank" rel="noopener noreferrer">{entry.url}</a>
+                <a href={ensureUrl(entry.url)} className="mt-1 block text-xs text-neutral-900 underline" target="_blank" rel="noopener noreferrer">{entry.url}</a>
               )}
             </section>
           ))}
@@ -146,10 +160,10 @@ export function SimplePreview({ data }: { data: CVData }) {
             <section key={entry.id} className="mt-4">
               <h3 className="text-sm font-bold text-neutral-700">{entry.name}</h3>
               <p className="text-xs text-neutral-700">
-                {[entry.issuer, entry.date ? formatMonth(entry.date) : "", entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" | ")}
+                {[entry.issuer, [entry.date ? formatMonth(entry.date) : "", entry.expiryDate ? formatMonth(entry.expiryDate) : ""].filter(Boolean).join(" – "), entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" | ")}
               </p>
               {entry.url && (
-                <a href={entry.url} className="mt-1 block text-xs text-neutral-900 underline" target="_blank" rel="noopener noreferrer">{entry.url}</a>
+                <a href={ensureUrl(entry.url)} className="mt-1 block text-xs text-neutral-900 underline" target="_blank" rel="noopener noreferrer">{entry.url}</a>
               )}
             </section>
           ))}
@@ -171,16 +185,43 @@ export function SimplePreview({ data }: { data: CVData }) {
         </section>
       )}
 
-      {/* Portfolio */}
-      {portfolio.length > 0 && (
+      {/* Projects */}
+      {projects.length > 0 && (
         <section className="mt-6">
-          <h2 className="border-b-2 border-neutral-900 pb-1 text-sm font-bold text-neutral-900">{data.portfolioTitle}</h2>
-          {portfolio.map((entry) => (
+          <h2 className="border-b-2 border-neutral-900 pb-1 text-sm font-bold text-neutral-900">{data.projectsTitle}</h2>
+          {projects.map((entry) => (
             <section key={entry.id} className="mt-4">
               <h3 className="text-sm font-bold text-neutral-700">
-                {entry.url ? <a href={entry.url} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
+                {entry.url ? <a href={ensureUrl(entry.url)} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
               </h3>
               {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
+            </section>
+          ))}
+        </section>
+      )}
+
+      {/* Volunteer */}
+      {volunteer.some((e) => e.organization || e.role) && (
+        <section className="mt-6">
+          <h2 className="border-b-2 border-neutral-900 pb-1 text-sm font-bold text-neutral-900">{data.volunteerTitle}</h2>
+          {volunteer.filter((e) => e.organization || e.role).map((entry) => (
+            <section key={entry.id} className="mt-4">
+              {entry.role && <h3 className="text-sm font-bold text-neutral-700">{entry.role}</h3>}
+              <p className="text-xs text-neutral-700">
+                {[
+                  entry.organization,
+                  (entry.startDate || entry.endDate || entry.current)
+                    ? [formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")
+                    : "",
+                ].filter(Boolean).join(" | ")}
+              </p>
+              {entry.description && (
+                <ul className="mt-1.5 list-disc space-y-0.5 pl-4">
+                  {entry.description.split("\n").filter((l) => l.trim()).map((line, i) => (
+                    <li key={i} className="text-xs leading-relaxed text-neutral-700">{line.trim()}</li>
+                  ))}
+                </ul>
+              )}
             </section>
           ))}
         </section>

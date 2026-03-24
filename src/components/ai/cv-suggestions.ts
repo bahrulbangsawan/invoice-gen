@@ -55,7 +55,7 @@ export function getCVSuggestions(data: CVData): CVSuggestion[] {
   return suggestions
 }
 
-const MENTION_REGEX = /@(personal-info|summary|experience|education|skills|awards|certificates|languages|portfolio)\b/g
+const MENTION_REGEX = /@(personal-info|summary|experience|education|skills|awards|certificates|languages|projects|volunteer)\b/g
 
 export function extractMentions(text: string): CVSectionKey[] {
   const mentions: CVSectionKey[] = []

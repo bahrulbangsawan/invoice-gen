@@ -9,7 +9,8 @@ const CV_SECTION_KEYS = [
   "awards",
   "certificates",
   "languages",
-  "portfolio",
+  "projects",
+  "volunteer",
 ] as const
 
 export type CVSectionKey = (typeof CV_SECTION_KEYS)[number]
@@ -23,7 +24,8 @@ export const CV_SECTIONS: { key: CVSectionKey; label: string }[] = [
   { key: "awards", label: "Awards" },
   { key: "certificates", label: "Certificates" },
   { key: "languages", label: "Languages" },
-  { key: "portfolio", label: "Portfolio" },
+  { key: "projects", label: "Projects" },
+  { key: "volunteer", label: "Volunteer" },
 ]
 
 function serializeCV(data: CVData): string {
@@ -44,7 +46,7 @@ function serializeCV(data: CVData): string {
     const entries = data.experience
       .map(
         (e, i) =>
-          `[Experience #${i}] ${e.title} at ${e.company} (${e.startDate}–${e.current ? "Present" : e.endDate}): ${e.description}`,
+          `[Experience #${i}] ${e.title} at ${e.company} (${e.startDate}–${e.current ? "Present" : e.endDate})${e.workType ? ` [${e.workType}]` : ""}${e.locationPolicy ? ` [${e.locationPolicy}]` : ""}: ${e.description}`,
       )
       .join("\n")
     parts.push(entries)
@@ -54,7 +56,7 @@ function serializeCV(data: CVData): string {
     const entries = data.education
       .map(
         (e) =>
-          `[Education] ${e.degree} at ${e.institution} (${e.startDate}–${e.current ? "Present" : e.endDate})`,
+          `[Education] ${e.degree} at ${e.institution} (${e.startDate}–${e.current ? "Present" : e.endDate})${e.category ? ` [${e.category}]` : ""}`,
       )
       .join("\n")
     parts.push(entries)
@@ -76,7 +78,7 @@ function serializeCV(data: CVData): string {
 
   if (data.certificates.length > 0) {
     const entries = data.certificates
-      .map((c) => `[Certificate] ${c.name} — ${c.issuer} (${c.date})`)
+      .map((c) => `[Certificate] ${c.name} — ${c.issuer} (${[c.date, c.expiryDate].filter(Boolean).join(" – ")})`)
       .join("\n")
     parts.push(entries)
   }
@@ -88,9 +90,19 @@ function serializeCV(data: CVData): string {
     parts.push(entries)
   }
 
-  if (data.portfolio.length > 0) {
-    const entries = data.portfolio
-      .map((p) => `[Portfolio] ${p.name} | ${p.url} | ${p.description}`)
+  if (data.projects.length > 0) {
+    const entries = data.projects
+      .map((p) => `[Projects] ${p.name} | ${p.url} | ${p.description}`)
+      .join("\n")
+    parts.push(entries)
+  }
+
+  if (data.volunteer.length > 0) {
+    const entries = data.volunteer
+      .map(
+        (v) =>
+          `[Volunteer] ${v.organization} | ${v.role} | ${v.startDate} | ${v.current ? "Present" : v.endDate} | ${v.description}`,
+      )
       .join("\n")
     parts.push(entries)
   }
@@ -127,7 +139,7 @@ QUESTIONS about CV: answer in 1-2 sentences.
 OFF-TOPIC: reply "I can only help with CV content."
 NEVER repeat/list/echo CV data. No explanations.
 
-Valid sections: summary, experience, education, skills, awards, certificates, languages, portfolio
+Valid sections: summary, experience, education, skills, awards, certificates, languages, projects, volunteer
 
 SECTION FORMATS (use | as separator, one entry per line):
 
@@ -152,9 +164,9 @@ Awards (Title | Issuer | Date | Description):
 Best Innovation | Startup Weekend | 2021-11 | Won first place for building an AI platform
 </apply>
 
-Certificates (Name | Issuer | Date | CredentialId):
+Certificates (Name | Issuer | Date | ExpiryDate | CredentialId):
 <apply section="certificates">
-AWS Solutions Architect | Amazon Web Services | 2023-04 | AWS-SAA-2023
+AWS Solutions Architect | Amazon Web Services | 2023-04 | 2026-04 | AWS-SAA-2023
 </apply>
 
 Education (Degree | Institution | StartDate | EndDate):
@@ -162,9 +174,14 @@ Education (Degree | Institution | StartDate | EndDate):
 B.S. Computer Science | MIT | 2013-09 | 2017-06
 </apply>
 
-Portfolio (Name | URL | Description):
-<apply section="portfolio">
+Projects (Name | URL | Description):
+<apply section="projects">
 CV Builder | https://cv.bahrul.me | AI-powered CV builder with real-time preview
+</apply>
+
+Volunteer (Organization | Role | StartDate | EndDate | Description):
+<apply section="volunteer">
+Red Cross | Volunteer Coordinator | 2020-01 | 2021-06 | Organized community outreach programs
 </apply>
 
 IMPORTANT: Include ALL existing entries plus new ones. Do not drop entries.

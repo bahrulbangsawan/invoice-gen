@@ -1,4 +1,5 @@
 import type { CVData } from "@/components/cv-form"
+import { ensureUrl, formatPhoneDisplay } from "@/lib/utils"
 
 function formatMonth(value: string): string {
   if (!value) return ""
@@ -8,8 +9,12 @@ function formatMonth(value: string): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" })
 }
 
+const WORK_TYPE_LABELS: Record<string, string> = { "full-time": "Full-Time", "part-time": "Part-Time", internship: "Internship" }
+const LOCATION_LABELS: Record<string, string> = { "work-from-office": "Work From Office", "work-from-anywhere": "Work From Anywhere", hybrid: "Hybrid" }
+const EDUCATION_CATEGORY_LABELS: Record<string, string> = { university: "University", college: "College / Institute", school: "School (K-12)", polytechnic: "Polytechnic / Vocational", academy: "Academy", "language-center": "Language / Tuition Center", "online-platform": "Online Learning Platform", "professional-association": "Professional Association" }
+
 export function BasicPreview({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, projects, volunteer } = data
 
   return (
     <article id="cv-content" className="cv-page mx-auto">
@@ -33,7 +38,7 @@ export function BasicPreview({ data }: { data: CVData }) {
           )}
           {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
             <p className="mt-2 text-xs text-neutral-500">
-              {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join(" \u00b7 ")}
+              {[personalInfo.email, personalInfo.phone ? formatPhoneDisplay(personalInfo.phone) : "", personalInfo.location, personalInfo.linkedIn ? `linkedin.com/in/${personalInfo.linkedIn}` : ""].filter(Boolean).join(" \u00b7 ")}
             </p>
           )}
         </div>
@@ -54,6 +59,11 @@ export function BasicPreview({ data }: { data: CVData }) {
               <h3 className="text-sm font-semibold text-neutral-900">{[entry.title, entry.company].filter(Boolean).join(" at ")}</h3>
               {(entry.startDate || entry.endDate || entry.current) && (
                 <p className="text-xs text-neutral-500">{[formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")}</p>
+              )}
+              {(entry.workType || entry.locationPolicy) && (
+                <p className="mt-1 text-xs text-neutral-500">
+                  {[WORK_TYPE_LABELS[entry.workType], LOCATION_LABELS[entry.locationPolicy]].filter(Boolean).join(" \u00b7 ")}
+                </p>
               )}
               {entry.description && (
                 <ul className="mt-1.5 list-disc space-y-0.5 pl-4">
@@ -77,6 +87,9 @@ export function BasicPreview({ data }: { data: CVData }) {
                 <p className="text-xs text-neutral-500">{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</p>
               )}
               {entry.gpa && <p className="text-xs text-neutral-500">GPA: {entry.gpa}</p>}
+              {entry.category && (
+                <p className="text-xs text-neutral-500">{EDUCATION_CATEGORY_LABELS[entry.category]}</p>
+              )}
             </section>
           ))}
         </section>
@@ -104,7 +117,7 @@ export function BasicPreview({ data }: { data: CVData }) {
               <h3 className="text-sm font-semibold text-neutral-900">{[entry.title, entry.issuer].filter(Boolean).join(" \u2013 ")}</h3>
               {entry.date && <p className="text-xs text-neutral-500">{formatMonth(entry.date)}</p>}
               {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
-              {entry.url && <p className="mt-1 text-xs text-neutral-500 underline">{entry.url}</p>}
+              {entry.url && <a href={ensureUrl(entry.url)} target="_blank" rel="noopener noreferrer" className="mt-1 block text-xs text-neutral-500 underline">{entry.url}</a>}
             </section>
           ))}
         </section>
@@ -116,8 +129,8 @@ export function BasicPreview({ data }: { data: CVData }) {
           {certificates.filter((e) => e.name).map((entry) => (
             <section key={entry.id} className="mt-4">
               <h3 className="text-sm font-semibold text-neutral-900">{[entry.name, entry.issuer].filter(Boolean).join(" \u2013 ")}</h3>
-              <p className="text-xs text-neutral-500">{[entry.date ? formatMonth(entry.date) : "", entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" \u00b7 ")}</p>
-              {entry.url && <p className="mt-1 text-xs text-neutral-500 underline">{entry.url}</p>}
+              <p className="text-xs text-neutral-500">{[[entry.date ? formatMonth(entry.date) : "", entry.expiryDate ? formatMonth(entry.expiryDate) : ""].filter(Boolean).join(" – "), entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" \u00b7 ")}</p>
+              {entry.url && <a href={ensureUrl(entry.url)} target="_blank" rel="noopener noreferrer" className="mt-1 block text-xs text-neutral-500 underline">{entry.url}</a>}
             </section>
           ))}
         </section>
@@ -137,15 +150,36 @@ export function BasicPreview({ data }: { data: CVData }) {
         </section>
       )}
 
-      {portfolio.length > 0 && (
+      {projects.length > 0 && (
         <section className="mt-6">
-          <h2 className="border-b border-neutral-200 pb-1 text-xs font-bold uppercase tracking-wider text-neutral-900">{data.portfolioTitle}</h2>
-          {portfolio.map((entry) => (
+          <h2 className="border-b border-neutral-200 pb-1 text-xs font-bold uppercase tracking-wider text-neutral-900">{data.projectsTitle}</h2>
+          {projects.map((entry) => (
             <section key={entry.id} className="mt-4">
               <h3 className="text-sm font-semibold text-neutral-900">
-                {entry.url ? <a href={entry.url} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
+                {entry.url ? <a href={ensureUrl(entry.url)} className="underline" target="_blank" rel="noopener noreferrer">{entry.name}</a> : entry.name}
               </h3>
               {entry.description && <p className="mt-1 text-xs leading-relaxed text-neutral-700">{entry.description}</p>}
+            </section>
+          ))}
+        </section>
+      )}
+
+      {volunteer.some((e) => e.organization || e.role) && (
+        <section className="mt-6">
+          <h2 className="border-b border-neutral-200 pb-1 text-xs font-bold uppercase tracking-wider text-neutral-900">{data.volunteerTitle}</h2>
+          {volunteer.filter((e) => e.organization || e.role).map((entry) => (
+            <section key={entry.id} className="mt-4">
+              <h3 className="text-sm font-semibold text-neutral-900">{[entry.role, entry.organization].filter(Boolean).join(" at ")}</h3>
+              {(entry.startDate || entry.endDate || entry.current) && (
+                <p className="text-xs text-neutral-500">{[formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")}</p>
+              )}
+              {entry.description && (
+                <ul className="mt-1.5 list-disc space-y-0.5 pl-4">
+                  {entry.description.split("\n").filter((l) => l.trim()).map((line, i) => (
+                    <li key={i} className="text-xs leading-relaxed text-neutral-700">{line.trim()}</li>
+                  ))}
+                </ul>
+              )}
             </section>
           ))}
         </section>

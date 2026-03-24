@@ -144,7 +144,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
       }
 
       case "certificates": {
-        // Format: "Name | Issuer | Date | CredentialId" per line
+        // Format: "Name | Issuer | Date | ExpiryDate | CredentialId" per line
         const certLines = action.content.split("\n").filter((l) => l.trim())
         const existingCerts = new Map(
           current.certificates.map((c) => [c.name.toLowerCase(), c]),
@@ -161,7 +161,8 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
             name,
             issuer: parts[1] ?? existing?.issuer ?? "",
             date: parts[2] ?? existing?.date ?? "",
-            credentialId: parts[3] ?? existing?.credentialId ?? "",
+            expiryDate: parts[3] ?? existing?.expiryDate ?? "",
+            credentialId: parts[4] ?? existing?.credentialId ?? "",
             url: existing?.url ?? "",
           })
         }
@@ -190,6 +191,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
           const endDate = parts[3] ?? existing?.endDate ?? ""
           existingEdu.set(key, {
             id: existing?.id ?? crypto.randomUUID(),
+            category: existing?.category ?? "",
             degree,
             institution,
             gpa: parts[4] ?? existing?.gpa ?? "",
@@ -203,11 +205,11 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
         break
       }
 
-      case "portfolio": {
+      case "projects": {
         // Format: "Name | URL | Description" per line
         const portLines = action.content.split("\n").filter((l) => l.trim())
         const existingPort = new Map(
-          current.portfolio.map((p) => [p.name.toLowerCase(), p]),
+          current.projects.map((p) => [p.name.toLowerCase(), p]),
         )
 
         for (const line of portLines) {
@@ -224,7 +226,40 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
           })
         }
 
-        setter({ ...current, portfolio: [...existingPort.values()] })
+        setter({ ...current, projects: [...existingPort.values()] })
+        break
+      }
+
+      case "volunteer": {
+        // Format: "Organization | Role | StartDate | EndDate | Description" per line
+        const volLines = action.content.split("\n").filter((l) => l.trim())
+        const existingVol = new Map(
+          current.volunteer.map((v) => [
+            `${v.organization}|${v.role}`.toLowerCase(),
+            v,
+          ]),
+        )
+
+        for (const line of volLines) {
+          const parts = line.split("|").map((s) => s.trim())
+          const organization = parts[0] ?? ""
+          const role = parts[1] ?? ""
+          if (!organization) continue
+          const key = `${organization}|${role}`.toLowerCase()
+          const existing = existingVol.get(key)
+          const endDate = parts[3] ?? existing?.endDate ?? ""
+          existingVol.set(key, {
+            id: existing?.id ?? crypto.randomUUID(),
+            organization,
+            role,
+            startDate: parts[2] ?? existing?.startDate ?? "",
+            endDate: endDate === "Present" ? "" : endDate,
+            current: endDate === "Present",
+            description: parts[4] ?? existing?.description ?? "",
+          })
+        }
+
+        setter({ ...current, volunteer: [...existingVol.values()] })
         break
       }
 

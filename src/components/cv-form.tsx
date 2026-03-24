@@ -1,16 +1,13 @@
-import { useState } from "react"
+import { type ReactNode, useMemo, useState } from "react"
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core"
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import {
   InputGroup,
   InputGroupAddon,
@@ -19,7 +16,20 @@ import {
 } from "@/components/ui/input-group"
 import { PhoneInput } from "@/components/reui/phone-input"
 import { Switch } from "@/components/ui/switch"
-import { Plus, X, Upload, Trash2 } from "lucide-react"
+import { GripVertical, Info, X, Upload, Trash2 } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { FormField } from "@/components/form/form-field"
 import { SectionList } from "@/components/form/section-list"
 
@@ -34,18 +44,61 @@ export interface PersonalInfo {
   usePhoto: boolean
 }
 
+export type WorkType = "" | "full-time" | "part-time" | "internship"
+export type LocationPolicy = "" | "work-from-office" | "work-from-anywhere" | "hybrid"
+
+export const WORK_TYPE_OPTIONS: { value: WorkType; label: string }[] = [
+  { value: "", label: "Not specified" },
+  { value: "full-time", label: "Full-Time" },
+  { value: "part-time", label: "Part-Time" },
+  { value: "internship", label: "Internship" },
+]
+
+export const LOCATION_POLICY_OPTIONS: { value: LocationPolicy; label: string }[] = [
+  { value: "", label: "Not specified" },
+  { value: "work-from-office", label: "Work From Office" },
+  { value: "work-from-anywhere", label: "Work From Anywhere" },
+  { value: "hybrid", label: "Hybrid" },
+]
+
 export interface ExperienceEntry {
   id: string
   company: string
   title: string
+  workType: WorkType
+  locationPolicy: LocationPolicy
   startDate: string
   endDate: string
   current: boolean
   description: string
 }
 
+export type EducationCategory =
+  | ""
+  | "university"
+  | "college"
+  | "school"
+  | "polytechnic"
+  | "academy"
+  | "language-center"
+  | "online-platform"
+  | "professional-association"
+
+export const EDUCATION_CATEGORY_OPTIONS: { value: EducationCategory; label: string }[] = [
+  { value: "", label: "Not specified" },
+  { value: "university", label: "University" },
+  { value: "college", label: "College / Institute" },
+  { value: "school", label: "School (K-12)" },
+  { value: "polytechnic", label: "Polytechnic / Vocational" },
+  { value: "academy", label: "Academy" },
+  { value: "language-center", label: "Language / Tuition Center" },
+  { value: "online-platform", label: "Online Learning Platform" },
+  { value: "professional-association", label: "Professional Association" },
+]
+
 export interface EducationEntry {
   id: string
+  category: EducationCategory
   institution: string
   degree: string
   gpa: string
@@ -68,6 +121,7 @@ export interface CertificateEntry {
   name: string
   issuer: string
   date: string
+  expiryDate: string
   credentialId: string
   url: string
 }
@@ -78,10 +132,20 @@ export interface LanguageEntry {
   proficiency: string
 }
 
-export interface PortfolioEntry {
+export interface ProjectEntry {
   id: string
   name: string
   url: string
+  description: string
+}
+
+export interface VolunteerEntry {
+  id: string
+  organization: string
+  role: string
+  startDate: string
+  endDate: string
+  current: boolean
   description: string
 }
 
@@ -93,8 +157,32 @@ export interface SkillCategory {
   items: string[]
 }
 
+export type CVSectionId =
+  | "summary"
+  | "experience"
+  | "education"
+  | "skills"
+  | "awards"
+  | "certificates"
+  | "languages"
+  | "projects"
+  | "volunteer"
+
+export const DEFAULT_SECTION_ORDER: CVSectionId[] = [
+  "summary",
+  "experience",
+  "education",
+  "skills",
+  "awards",
+  "certificates",
+  "languages",
+  "projects",
+  "volunteer",
+]
+
 export interface CVData {
   personalInfo: PersonalInfo
+  sectionOrder: CVSectionId[]
   summaryTitle: string
   summary: string
   experienceTitle: string
@@ -109,8 +197,29 @@ export interface CVData {
   certificates: CertificateEntry[]
   languagesTitle: string
   languages: LanguageEntry[]
-  portfolioTitle: string
-  portfolio: PortfolioEntry[]
+  projectsTitle: string
+  projects: ProjectEntry[]
+  volunteerTitle: string
+  volunteer: VolunteerEntry[]
+}
+
+function dateDiffLabel(from: Date, to: Date) {
+  let y = to.getFullYear() - from.getFullYear()
+  let m = to.getMonth() - from.getMonth()
+  let d = to.getDate() - from.getDate()
+  if (d < 0) {
+    m--
+    d += new Date(to.getFullYear(), to.getMonth(), 0).getDate()
+  }
+  if (m < 0) {
+    y--
+    m += 12
+  }
+  const p: string[] = []
+  if (y > 0) p.push(`${y} Year${y > 1 ? "s" : ""}`)
+  if (m > 0) p.push(`${m} Month${m > 1 ? "s" : ""}`)
+  if (d > 0) p.push(`${d} Day${d > 1 ? "s" : ""}`)
+  return p.join(", ") || "0 Days"
 }
 
 interface CVFormProps {
@@ -121,7 +230,6 @@ interface CVFormProps {
 export function CVForm({ data, onChange }: CVFormProps) {
   const [skillInputs, setSkillInputs] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [openExperience, setOpenExperience] = useState<string[]>([])
 
   // --- Error management ---
   function updateError(key: string, error: string | undefined) {
@@ -153,6 +261,8 @@ export function CVForm({ data, onChange }: CVFormProps) {
           id,
           company: "",
           title: "",
+          workType: "" as WorkType,
+          locationPolicy: "" as LocationPolicy,
           startDate: "",
           endDate: "",
           current: false,
@@ -160,7 +270,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
         },
       ],
     })
-    setOpenExperience((prev) => [...prev, id])
   }
 
   function removeExperience(id: string) {
@@ -168,7 +277,6 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       experience: data.experience.filter((e) => e.id !== id),
     })
-    setOpenExperience((prev) => prev.filter((v) => v !== id))
     setErrors((prev) => {
       const next = { ...prev }
       delete next[`exp-${id}-company`]
@@ -197,7 +305,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       education: [
         ...data.education,
-        { id, institution: "", degree: "", gpa: "", startDate: "", endDate: "", current: false },
+        { id, category: "" as EducationCategory, institution: "", degree: "", gpa: "", startDate: "", endDate: "", current: false },
       ],
     })
   }
@@ -320,7 +428,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
       ...data,
       certificates: [
         ...data.certificates,
-        { id, name: "", issuer: "", date: "", credentialId: "", url: "" },
+        { id, name: "", issuer: "", date: "", expiryDate: "", credentialId: "", url: "" },
       ],
     })
   }
@@ -377,32 +485,64 @@ export function CVForm({ data, onChange }: CVFormProps) {
     })
   }
 
-  function addPortfolio() {
+  function addProject() {
     const id = crypto.randomUUID()
     onChange({
       ...data,
-      portfolio: [
-        ...data.portfolio,
+      projects: [
+        ...data.projects,
         { id, name: "", url: "", description: "" },
       ],
     })
   }
 
-  function removePortfolio(id: string) {
+  function removeProject(id: string) {
     onChange({
       ...data,
-      portfolio: data.portfolio.filter((e) => e.id !== id),
+      projects: data.projects.filter((e) => e.id !== id),
     })
   }
 
-  function updatePortfolio(
+  function updateProject(
     id: string,
-    field: keyof Omit<PortfolioEntry, "id">,
+    field: keyof Omit<ProjectEntry, "id">,
     value: string,
   ) {
     onChange({
       ...data,
-      portfolio: data.portfolio.map((e) =>
+      projects: data.projects.map((e) =>
+        e.id === id ? { ...e, [field]: value } : e,
+      ),
+    })
+  }
+
+  // --- Volunteer ---
+  function addVolunteer() {
+    const id = crypto.randomUUID()
+    onChange({
+      ...data,
+      volunteer: [
+        ...data.volunteer,
+        { id, organization: "", role: "", startDate: "", endDate: "", current: false, description: "" },
+      ],
+    })
+  }
+
+  function removeVolunteer(id: string) {
+    onChange({
+      ...data,
+      volunteer: data.volunteer.filter((e) => e.id !== id),
+    })
+  }
+
+  function updateVolunteer(
+    id: string,
+    field: keyof Omit<VolunteerEntry, "id">,
+    value: string,
+  ) {
+    onChange({
+      ...data,
+      volunteer: data.volunteer.map((e) =>
         e.id === id ? { ...e, [field]: value } : e,
       ),
     })
@@ -413,6 +553,141 @@ export function CVForm({ data, onChange }: CVFormProps) {
     if (entry.title && entry.company)
       return `${entry.title} at ${entry.company}`
     return entry.title || entry.company || `Experience #${index + 1}`
+  }
+
+  const totalExperience = useMemo(() => {
+    const now = new Date()
+    const intervals = data.experience
+      .filter((e) => e.startDate)
+      .map((e) => {
+        const start = new Date(`${e.startDate}-01`)
+        const end =
+          e.current || !e.endDate ? now : new Date(`${e.endDate}-01`)
+        return { start, end }
+      })
+      .filter(
+        (i) =>
+          !Number.isNaN(i.start.getTime()) &&
+          !Number.isNaN(i.end.getTime()),
+      )
+    if (intervals.length === 0) return null
+
+    const earliest = new Date(
+      Math.min(...intervals.map((i) => i.start.getTime())),
+    )
+    const since = earliest.toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    })
+    const spanLabel = dateDiffLabel(earliest, now)
+
+    const sorted = [...intervals].sort(
+      (a, b) => a.start.getTime() - b.start.getTime(),
+    )
+    const merged: { start: Date; end: Date }[] = []
+    for (const iv of sorted) {
+      const last = merged[merged.length - 1]
+      if (last && iv.start <= last.end) {
+        if (iv.end > last.end) last.end = iv.end
+      } else {
+        merged.push({ start: new Date(iv.start), end: new Date(iv.end) })
+      }
+    }
+    let totalMs = 0
+    for (const block of merged) {
+      totalMs += block.end.getTime() - block.start.getTime()
+    }
+    const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24))
+    const refEnd = new Date(totalDays * 24 * 60 * 60 * 1000)
+    const actualLabel = dateDiffLabel(new Date(0), refEnd)
+
+    return { label: spanLabel, since, actualLabel }
+  }, [data.experience])
+
+  const sinceGraduation = useMemo(() => {
+    const now = new Date()
+    const uniEntries = data.education.filter(
+      (e) => e.category === "university" && (e.endDate || e.current),
+    )
+    if (uniEntries.length === 0) return null
+
+    const endDates = uniEntries.map((e) =>
+      e.current ? now : new Date(`${e.endDate}-01`),
+    ).filter((d) => !Number.isNaN(d.getTime()))
+    if (endDates.length === 0) return null
+
+    const latest = new Date(Math.max(...endDates.map((d) => d.getTime())))
+    const label = dateDiffLabel(latest, now)
+    const since = latest.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+
+    return { label, since }
+  }, [data.education])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
+  )
+
+  function handleSectionDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = data.sectionOrder.indexOf(active.id as CVSectionId)
+    const newIndex = data.sectionOrder.indexOf(over.id as CVSectionId)
+    if (oldIndex === -1 || newIndex === -1) return
+    onChange({ ...data, sectionOrder: arrayMove(data.sectionOrder, oldIndex, newIndex) })
+  }
+
+
+  function renderSection(sectionId: CVSectionId): ReactNode {
+    switch (sectionId) {
+      case "summary":
+        return (
+          <section>
+            <input
+              className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
+              value={data.summaryTitle}
+              placeholder="Professional Summary"
+              onChange={(e) => onChange({ ...data, summaryTitle: e.target.value })}
+            />
+            <div className="mt-3">
+              <Textarea
+                placeholder="Write a brief professional summary..."
+                value={data.summary}
+                aria-invalid={!!errors.summary}
+                onChange={(e) => {
+                  onChange({ ...data, summary: e.target.value })
+                  if (errors.summary && e.target.value.length <= 500) updateError("summary", undefined)
+                }}
+                onBlur={(e) => {
+                  updateError("summary", e.target.value.length > 500 ? "Maximum 500 characters" : undefined)
+                }}
+              />
+              <div className="mt-1 flex justify-between">
+                {errors.summary ? <p className="text-xs text-destructive">{errors.summary}</p> : <span />}
+                <p className={`text-xs ${data.summary.length > 500 ? "text-destructive" : "text-muted-foreground"}`}>{data.summary.length}/500</p>
+              </div>
+            </div>
+          </section>
+        )
+      case "experience":
+        return renderExperienceSection()
+      case "education":
+        return renderEducationSection()
+      case "skills":
+        return renderSkillsSection()
+      case "awards":
+        return renderAwardsSection()
+      case "certificates":
+        return renderCertificatesSection()
+      case "languages":
+        return renderLanguagesSection()
+      case "projects":
+        return renderProjectsSection()
+      case "volunteer":
+        return renderVolunteerSection()
+      default:
+        return null
+    }
   }
 
   return (
@@ -614,204 +889,234 @@ export function CVForm({ data, onChange }: CVFormProps) {
         </div>
       </section>
 
-      <Separator />
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
+        <SortableContext items={data.sectionOrder} strategy={verticalListSortingStrategy}>
+          {data.sectionOrder.map((sectionId) => (
+            <SortableSection key={sectionId} id={sectionId}>
+              {renderSection(sectionId)}
+            </SortableSection>
+          ))}
+        </SortableContext>
+      </DndContext>
+    </div>
+  )
 
-      {/* ── Professional Summary ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.summaryTitle}
-          placeholder="Professional Summary"
-          onChange={(e) =>
-            onChange({ ...data, summaryTitle: e.target.value })
-          }
-        />
-        <div className="mt-3">
-          <Textarea
-            placeholder="Write a brief professional summary..."
-            value={data.summary}
-            aria-invalid={!!errors.summary}
-            onChange={(e) => {
-              onChange({ ...data, summary: e.target.value })
-              if (errors.summary && e.target.value.length <= 500)
-                updateError("summary", undefined)
-            }}
-            onBlur={(e) => {
-              updateError(
-                "summary",
-                e.target.value.length > 500
-                  ? "Maximum 500 characters"
-                  : undefined
-              )
-            }}
-          />
-          <div className="mt-1 flex justify-between">
-            {errors.summary ? (
-              <p className="text-xs text-destructive">{errors.summary}</p>
-            ) : (
-              <span />
-            )}
-            <p
-              className={`text-xs ${data.summary.length > 500 ? "text-destructive" : "text-muted-foreground"}`}
-            >
-              {data.summary.length}/500
-            </p>
-          </div>
-        </div>
-      </section>
+  function renderExperienceSection() {
+    return (
+      <SectionList<ExperienceEntry>
+        title={data.experienceTitle}
+        onTitleChange={(v) => onChange({ ...data, experienceTitle: v })}
+        placeholder="Work Experience"
+        items={data.experience}
+        onReorder={(items) => onChange({ ...data, experience: items })}
+        onAdd={addExperience}
+        onRemove={removeExperience}
+        addLabel="Add Experience"
+        titleExtra={
+          totalExperience && (
+            <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+              {totalExperience.label}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="size-3.5 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="flex-col items-start text-xs leading-relaxed">
+                    <p>Career span: {totalExperience.label}</p>
+                    <p>Actual working: {totalExperience.actualLabel}</p>
+                    <p className="mt-1 opacity-70">Since {totalExperience.since}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
+          )
+        }
+        summary={experienceSummary}
+        triggerExtra={(entry) =>
+          entry.startDate ? (
+            <span className="shrink-0 text-[10px] text-muted-foreground">
+              {dateDiffLabel(
+                new Date(`${entry.startDate}-01`),
+                entry.current || !entry.endDate
+                  ? new Date()
+                  : new Date(`${entry.endDate}-01`),
+              )}
+            </span>
+          ) : null
+        }
+        hasError={(entry) =>
+          !!(errors[`exp-${entry.id}-company`] || errors[`exp-${entry.id}-title`])
+        }
+        renderContent={(entry) => (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormField
+                label="Company"
+                placeholder="Company name"
+                value={entry.company}
+                error={errors[`exp-${entry.id}-company`]}
+                onChange={(v) => {
+                  updateExperience(entry.id, "company", v)
+                  if (errors[`exp-${entry.id}-company`] && v.trim())
+                    updateError(`exp-${entry.id}-company`, undefined)
+                }}
+                onBlur={() => {
+                  updateError(
+                    `exp-${entry.id}-company`,
+                    !entry.company.trim() ? "Company is required" : undefined
+                  )
+                }}
+              />
+              <FormField
+                label="Job Title"
+                placeholder="Your role"
+                value={entry.title}
+                error={errors[`exp-${entry.id}-title`]}
+                onChange={(v) => {
+                  updateExperience(entry.id, "title", v)
+                  if (errors[`exp-${entry.id}-title`] && v.trim())
+                    updateError(`exp-${entry.id}-title`, undefined)
+                }}
+                onBlur={() => {
+                  updateError(
+                    `exp-${entry.id}-title`,
+                    !entry.title.trim() ? "Job title is required" : undefined
+                  )
+                }}
+              />
+              <div className="space-y-1.5">
+                <Label>Work Type</Label>
+                <Select value={entry.workType || "__empty__"} onValueChange={(v) => updateExperience(entry.id, "workType", v === "__empty__" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                  <SelectContent>
+                    {WORK_TYPE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value || "__empty__"} value={opt.value || "__empty__"}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Location Policy</Label>
+                <Select value={entry.locationPolicy || "__empty__"} onValueChange={(v) => updateExperience(entry.id, "locationPolicy", v === "__empty__" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="Select policy" /></SelectTrigger>
+                  <SelectContent>
+                    {LOCATION_POLICY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value || "__empty__"} value={opt.value || "__empty__"}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <FormField
+                label="Start Date"
+                type="month"
+                value={entry.startDate}
+                onChange={(v) => updateExperience(entry.id, "startDate", v)}
+              />
+              <div className="space-y-1.5">
+                <Label>End Date</Label>
+                <Input
+                  type="month"
+                  value={entry.current ? "" : entry.endDate}
+                  disabled={entry.current}
+                  onChange={(e) =>
+                    updateExperience(entry.id, "endDate", e.target.value)
+                  }
+                />
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={entry.current}
+                    className="accent-primary"
+                    onChange={(e) => {
+                      onChange({
+                        ...data,
+                        experience: data.experience.map((exp) =>
+                          exp.id === entry.id
+                            ? { ...exp, current: e.target.checked, endDate: e.target.checked ? "" : exp.endDate }
+                            : exp
+                        ),
+                      })
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">Present</span>
+                </label>
+              </div>
+            </div>
+            <FormField
+              label="Description"
+              placeholder="Describe your responsibilities (one bullet per line)"
+              value={entry.description}
+              onChange={(v) => updateExperience(entry.id, "description", v)}
+              multiline
+            />
+          </>
+        )}
+      />
+    )
+  }
 
-      <Separator />
-
-      {/* ── Work Experience ── */}
-      <section>
-        <input
-          className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-          value={data.experienceTitle}
-          placeholder="Work Experience"
-          onChange={(e) =>
-            onChange({ ...data, experienceTitle: e.target.value })
-          }
-        />
-        <div className="mt-3 space-y-3">
-          {data.experience.length > 0 && (
-            <Accordion
-              type="multiple"
-              value={openExperience}
-              onValueChange={setOpenExperience}
-            >
-              {data.experience.map((entry, index) => (
-                <AccordionItem key={entry.id} value={entry.id}>
-                  <AccordionTrigger className="items-center gap-2">
-                    <span className="flex-1 truncate">
-                      {experienceSummary(entry, index)}
-                    </span>
-                    {(errors[`exp-${entry.id}-company`] ||
-                      errors[`exp-${entry.id}-title`]) && (
-                      <span className="size-1.5 shrink-0 rounded-full bg-destructive" />
-                    )}
-                    <span
-                      role="button"
-                      tabIndex={-1}
-                      className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeExperience(entry.id)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <FormField
-                        label="Company"
-                        placeholder="Company name"
-                        value={entry.company}
-                        error={errors[`exp-${entry.id}-company`]}
-                        onChange={(v) => {
-                          updateExperience(entry.id, "company", v)
-                          if (errors[`exp-${entry.id}-company`] && v.trim())
-                            updateError(`exp-${entry.id}-company`, undefined)
-                        }}
-                        onBlur={() => {
-                          updateError(
-                            `exp-${entry.id}-company`,
-                            !entry.company.trim() ? "Company is required" : undefined
-                          )
-                        }}
-                      />
-                      <FormField
-                        label="Job Title"
-                        placeholder="Your role"
-                        value={entry.title}
-                        error={errors[`exp-${entry.id}-title`]}
-                        onChange={(v) => {
-                          updateExperience(entry.id, "title", v)
-                          if (errors[`exp-${entry.id}-title`] && v.trim())
-                            updateError(`exp-${entry.id}-title`, undefined)
-                        }}
-                        onBlur={() => {
-                          updateError(
-                            `exp-${entry.id}-title`,
-                            !entry.title.trim() ? "Job title is required" : undefined
-                          )
-                        }}
-                      />
-                      <FormField
-                        label="Start Date"
-                        type="month"
-                        value={entry.startDate}
-                        onChange={(v) => updateExperience(entry.id, "startDate", v)}
-                      />
-                      <div className="space-y-1.5">
-                        <Label>End Date</Label>
-                        <Input
-                          type="month"
-                          value={entry.current ? "" : entry.endDate}
-                          disabled={entry.current}
-                          onChange={(e) =>
-                            updateExperience(entry.id, "endDate", e.target.value)
-                          }
-                        />
-                        <label className="flex items-center gap-1.5">
-                          <input
-                            type="checkbox"
-                            checked={entry.current}
-                            className="accent-primary"
-                            onChange={(e) => {
-                              onChange({
-                                ...data,
-                                experience: data.experience.map((exp) =>
-                                  exp.id === entry.id
-                                    ? { ...exp, current: e.target.checked, endDate: e.target.checked ? "" : exp.endDate }
-                                    : exp
-                                ),
-                              })
-                            }}
-                          />
-                          <span className="text-xs text-muted-foreground">Present</span>
-                        </label>
-                      </div>
-                    </div>
-                    <FormField
-                      label="Description"
-                      placeholder="Describe your responsibilities (one bullet per line)"
-                      value={entry.description}
-                      onChange={(v) => updateExperience(entry.id, "description", v)}
-                      multiline
-                    />
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-          <Button variant="outline" size="sm" onClick={addExperience}>
-            <Plus /> Add Experience
-          </Button>
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* ── Education ── */}
+  function renderEducationSection() {
+    return (
       <SectionList<EducationEntry>
         title={data.educationTitle}
         onTitleChange={(v) => onChange({ ...data, educationTitle: v })}
         placeholder="Education"
         items={data.education}
+        onReorder={(items) => onChange({ ...data, education: items })}
         onAdd={addEducation}
         onRemove={removeEducation}
         addLabel="Add Education"
+        titleExtra={
+          sinceGraduation && (
+            <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+              {sinceGraduation.label}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="size-3.5 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="flex-col items-start text-xs leading-relaxed">
+                    <p>Since last university graduation</p>
+                    <p>Graduated: {sinceGraduation.since}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
+          )
+        }
         summary={(entry, index) => {
           if (entry.degree && entry.institution)
             return `${entry.degree} – ${entry.institution}`
           return entry.degree || entry.institution || `Education #${index + 1}`
         }}
+        triggerExtra={(entry) =>
+          entry.startDate ? (
+            <span className="shrink-0 text-[10px] text-muted-foreground">
+              {dateDiffLabel(
+                new Date(`${entry.startDate}-01`),
+                entry.current || !entry.endDate
+                  ? new Date()
+                  : new Date(`${entry.endDate}-01`),
+              )}
+            </span>
+          ) : null
+        }
         hasError={(entry) =>
           !!(errors[`edu-${entry.id}-institution`] || errors[`edu-${entry.id}-degree`])
         }
         renderContent={(entry) => (
           <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Category</Label>
+              <Select value={entry.category || "__empty__"} onValueChange={(v) => updateEducation(entry.id, "category", v === "__empty__" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent>
+                  {EDUCATION_CATEGORY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value || "__empty__"} value={opt.value || "__empty__"}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <FormField
                 label="Institution"
@@ -892,15 +1197,17 @@ export function CVForm({ data, onChange }: CVFormProps) {
           </div>
         )}
       />
+    )
+  }
 
-      <Separator />
-
-      {/* ── Skills ── */}
+  function renderSkillsSection() {
+    return (
       <SectionList<SkillCategory>
         title={data.skillsTitle}
         onTitleChange={(v) => onChange({ ...data, skillsTitle: v })}
         placeholder="Skills"
         items={data.skills}
+        onReorder={(items) => onChange({ ...data, skills: items })}
         onAdd={addSkillCategory}
         onRemove={removeSkillCategory}
         addLabel="Add Category"
@@ -953,15 +1260,17 @@ export function CVForm({ data, onChange }: CVFormProps) {
           </div>
         )}
       />
+    )
+  }
 
-      <Separator />
-
-      {/* ── Awards ── */}
+  function renderAwardsSection() {
+    return (
       <SectionList<AwardEntry>
         title={data.awardsTitle}
         onTitleChange={(v) => onChange({ ...data, awardsTitle: v })}
         placeholder="Awards"
         items={data.awards}
+        onReorder={(items) => onChange({ ...data, awards: items })}
         onAdd={addAward}
         onRemove={removeAward}
         addLabel="Add Award"
@@ -1025,15 +1334,17 @@ export function CVForm({ data, onChange }: CVFormProps) {
           </>
         )}
       />
+    )
+  }
 
-      <Separator />
-
-      {/* ── Certificates ── */}
+  function renderCertificatesSection() {
+    return (
       <SectionList<CertificateEntry>
         title={data.certificatesTitle}
         onTitleChange={(v) => onChange({ ...data, certificatesTitle: v })}
         placeholder="Certificates"
         items={data.certificates}
+        onReorder={(items) => onChange({ ...data, certificates: items })}
         onAdd={addCertificate}
         onRemove={removeCertificate}
         addLabel="Add Certificate"
@@ -1058,10 +1369,16 @@ export function CVForm({ data, onChange }: CVFormProps) {
                 onChange={(v) => updateCertificate(entry.id, "issuer", v)}
               />
               <FormField
-                label="Date"
+                label="Issued Date"
                 type="month"
                 value={entry.date}
                 onChange={(v) => updateCertificate(entry.id, "date", v)}
+              />
+              <FormField
+                label="Expiry Date"
+                type="month"
+                value={entry.expiryDate}
+                onChange={(v) => updateCertificate(entry.id, "expiryDate", v)}
               />
               <FormField
                 label="Credential ID"
@@ -1069,42 +1386,44 @@ export function CVForm({ data, onChange }: CVFormProps) {
                 value={entry.credentialId}
                 onChange={(v) => updateCertificate(entry.id, "credentialId", v)}
               />
+              <FormField
+                label="URL"
+                type="url"
+                placeholder="https://..."
+                value={entry.url}
+                error={errors[`cert-${entry.id}-url`]}
+                onChange={(v) => {
+                  updateCertificate(entry.id, "url", v)
+                  if (
+                    errors[`cert-${entry.id}-url`] &&
+                    (!v || /^https?:\/\/.+/.test(v))
+                  )
+                    updateError(`cert-${entry.id}-url`, undefined)
+                }}
+                onBlur={() => {
+                  updateError(
+                    `cert-${entry.id}-url`,
+                    entry.url && !/^https?:\/\/.+/.test(entry.url)
+                      ? "Must start with http:// or https://"
+                      : undefined
+                  )
+                }}
+              />
             </div>
-            <FormField
-              label="URL"
-              type="url"
-              placeholder="https://..."
-              value={entry.url}
-              error={errors[`cert-${entry.id}-url`]}
-              onChange={(v) => {
-                updateCertificate(entry.id, "url", v)
-                if (
-                  errors[`cert-${entry.id}-url`] &&
-                  (!v || /^https?:\/\/.+/.test(v))
-                )
-                  updateError(`cert-${entry.id}-url`, undefined)
-              }}
-              onBlur={() => {
-                updateError(
-                  `cert-${entry.id}-url`,
-                  entry.url && !/^https?:\/\/.+/.test(entry.url)
-                    ? "Must start with http:// or https://"
-                    : undefined
-                )
-              }}
-            />
           </>
         )}
       />
+    )
+  }
 
-      <Separator />
-
-      {/* ── Languages ── */}
+  function renderLanguagesSection() {
+    return (
       <SectionList<LanguageEntry>
         title={data.languagesTitle}
         onTitleChange={(v) => onChange({ ...data, languagesTitle: v })}
         placeholder="Languages"
         items={data.languages}
+        onReorder={(items) => onChange({ ...data, languages: items })}
         onAdd={addLanguage}
         onRemove={removeLanguage}
         addLabel="Add Language"
@@ -1130,45 +1449,143 @@ export function CVForm({ data, onChange }: CVFormProps) {
           </div>
         )}
       />
+    )
+  }
 
-      <Separator />
-
-      {/* ── Portfolio ── */}
-      <SectionList<PortfolioEntry>
-        title={data.portfolioTitle}
-        onTitleChange={(v) => onChange({ ...data, portfolioTitle: v })}
-        placeholder="Portfolio"
-        items={data.portfolio}
-        onAdd={addPortfolio}
-        onRemove={removePortfolio}
-        addLabel="Add Portfolio"
-        summary={(entry, index) => entry.name || `Portfolio ${index + 1}`}
+  function renderProjectsSection() {
+    return (
+      <SectionList<ProjectEntry>
+        title={data.projectsTitle}
+        onTitleChange={(v) => onChange({ ...data, projectsTitle: v })}
+        placeholder="Projects"
+        items={data.projects}
+        onReorder={(items) => onChange({ ...data, projects: items })}
+        onAdd={addProject}
+        onRemove={removeProject}
+        addLabel="Add Project"
+        summary={(entry, index) => entry.name || `Project ${index + 1}`}
         renderContent={(entry) => (
           <div className="grid gap-3">
             <FormField
               label="Name"
               placeholder="e.g. My Project"
               value={entry.name}
-              onChange={(v) => updatePortfolio(entry.id, "name", v)}
+              onChange={(v) => updateProject(entry.id, "name", v)}
             />
             <FormField
               label="URL"
               type="url"
               placeholder="https://..."
               value={entry.url}
-              onChange={(v) => updatePortfolio(entry.id, "url", v)}
+              onChange={(v) => updateProject(entry.id, "url", v)}
             />
             <FormField
               label="Description"
               placeholder="Brief description of the project"
               value={entry.description}
-              onChange={(v) => updatePortfolio(entry.id, "description", v)}
+              onChange={(v) => updateProject(entry.id, "description", v)}
               multiline
               rows={2}
             />
           </div>
         )}
       />
+    )
+  }
+
+  function renderVolunteerSection() {
+    return (
+      <SectionList<VolunteerEntry>
+        title={data.volunteerTitle}
+        onTitleChange={(v) => onChange({ ...data, volunteerTitle: v })}
+        placeholder="Volunteer & Community"
+        items={data.volunteer}
+        onReorder={(items) => onChange({ ...data, volunteer: items })}
+        onAdd={addVolunteer}
+        onRemove={removeVolunteer}
+        addLabel="Add Volunteer"
+        summary={(entry, index) => {
+          if (entry.role && entry.organization)
+            return `${entry.role} at ${entry.organization}`
+          return entry.role || entry.organization || `Volunteer #${index + 1}`
+        }}
+        renderContent={(entry) => (
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormField
+                label="Organization"
+                placeholder="Organization name"
+                value={entry.organization}
+                onChange={(v) => updateVolunteer(entry.id, "organization", v)}
+              />
+              <FormField
+                label="Role"
+                placeholder="Your role"
+                value={entry.role}
+                onChange={(v) => updateVolunteer(entry.id, "role", v)}
+              />
+              <FormField
+                label="Start Date"
+                type="month"
+                value={entry.startDate}
+                onChange={(v) => updateVolunteer(entry.id, "startDate", v)}
+              />
+              <div className="space-y-1.5">
+                <Label>End Date</Label>
+                <Input
+                  type="month"
+                  value={entry.current ? "" : entry.endDate}
+                  disabled={entry.current}
+                  onChange={(e) => updateVolunteer(entry.id, "endDate", e.target.value)}
+                />
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={entry.current}
+                    className="accent-primary"
+                    onChange={(e) => {
+                      onChange({
+                        ...data,
+                        volunteer: data.volunteer.map((vol) =>
+                          vol.id === entry.id
+                            ? { ...vol, current: e.target.checked, endDate: e.target.checked ? "" : vol.endDate }
+                            : vol
+                        ),
+                      })
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">Present</span>
+                </label>
+              </div>
+            </div>
+            <FormField
+              label="Description"
+              placeholder="Describe your contributions (one bullet per line)"
+              value={entry.description}
+              onChange={(v) => updateVolunteer(entry.id, "description", v)}
+              multiline
+            />
+          </div>
+        )}
+      />
+    )
+  }
+}
+
+function SortableSection({ id, children }: { id: string; children: ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <div className="absolute -left-6 top-1 cursor-grab text-muted-foreground/50 hover:text-muted-foreground" {...attributes} {...listeners}>
+        <GripVertical className="size-4" />
+      </div>
+      <Separator className="mb-6" />
+      {children}
     </div>
   )
 }

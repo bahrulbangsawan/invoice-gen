@@ -18,7 +18,9 @@ export function CVPreview({ data, style }: CVPreviewProps) {
     data.skills.some((c) => c.items.length > 0) ||
     data.awards.some((e) => e.title) ||
     data.certificates.some((e) => e.name) ||
-    data.languages.some((e) => e.language)
+    data.languages.some((e) => e.language) ||
+    data.projects.some((e) => e.name) ||
+    data.volunteer.some((e) => e.organization || e.role)
 
   if (!hasContent) {
     return (

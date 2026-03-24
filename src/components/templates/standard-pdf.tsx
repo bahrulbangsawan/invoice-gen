@@ -1,5 +1,6 @@
 import { Document, Page, View, Text, Link, Image, StyleSheet } from "@react-pdf/renderer"
 import type { CVData } from "@/components/cv-form"
+import { ensureUrl, formatPhoneDisplay } from "@/lib/utils"
 
 const s = StyleSheet.create({
   page: { fontFamily: "Helvetica", backgroundColor: "#ffffff", paddingTop: 32, paddingBottom: 32, paddingHorizontal: 40, fontSize: 9, color: "#404040", lineHeight: 1.5 },
@@ -35,8 +36,12 @@ function formatMonth(value: string): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" })
 }
 
+const WORK_TYPE_LABELS: Record<string, string> = { "full-time": "Full-Time", "part-time": "Part-Time", internship: "Internship" }
+const LOCATION_LABELS: Record<string, string> = { "work-from-office": "Work From Office", "work-from-anywhere": "Work From Anywhere", hybrid: "Hybrid" }
+const EDUCATION_CATEGORY_LABELS: Record<string, string> = { university: "University", college: "College / Institute", school: "School (K-12)", polytechnic: "Polytechnic / Vocational", academy: "Academy", "language-center": "Language / Tuition Center", "online-platform": "Online Learning Platform", "professional-association": "Professional Association" }
+
 export function CVDocument({ data }: { data: CVData }) {
-  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, portfolio } = data
+  const { personalInfo, summary, experience, education, skills, awards, certificates, languages, projects, volunteer } = data
   return (
     <Document>
       <Page size="A4" style={s.page}>
@@ -54,7 +59,7 @@ export function CVDocument({ data }: { data: CVData }) {
           {(personalInfo.email || personalInfo.phone || personalInfo.location || personalInfo.linkedIn) && (
             <View style={s.headerRight}>
               {personalInfo.email && <Text style={s.contactLine}>{personalInfo.email}</Text>}
-              {personalInfo.phone && <Text style={s.contactLine}>{personalInfo.phone}</Text>}
+              {personalInfo.phone && <Text style={s.contactLine}>{formatPhoneDisplay(personalInfo.phone)}</Text>}
               {personalInfo.location && <Text style={s.contactLine}>{personalInfo.location}</Text>}
               {personalInfo.linkedIn && <Text style={s.contactLine}>linkedin.com/in/{personalInfo.linkedIn}</Text>}
             </View>
@@ -79,6 +84,9 @@ export function CVDocument({ data }: { data: CVData }) {
                 {(entry.startDate || entry.endDate || entry.current) && (
                   <Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")}</Text>
                 )}
+                {(entry.workType || entry.locationPolicy) && (
+                  <Text style={s.entryDate}>{[WORK_TYPE_LABELS[entry.workType], LOCATION_LABELS[entry.locationPolicy]].filter(Boolean).join(" \u00b7 ")}</Text>
+                )}
                 {entry.description && entry.description.split("\n").filter((l) => l.trim()).map((line, i) => (
                   <View key={i} style={s.bulletRow}>
                     <Text style={s.bulletDot}>{"\u2022"}</Text>
@@ -101,6 +109,7 @@ export function CVDocument({ data }: { data: CVData }) {
                   <Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</Text>
                 )}
                 {entry.gpa && <Text style={s.entryDate}>GPA: {entry.gpa}</Text>}
+                {entry.category && <Text style={s.entryDate}>{EDUCATION_CATEGORY_LABELS[entry.category]}</Text>}
               </View>
             ))}
           </View>
@@ -128,7 +137,7 @@ export function CVDocument({ data }: { data: CVData }) {
                 <Text style={s.entryTitle}>{[entry.title, entry.issuer].filter(Boolean).join(" \u2013 ")}</Text>
                 {entry.date && <Text style={s.entryDate}>{formatMonth(entry.date)}</Text>}
                 {entry.description && <Text style={[s.bodyText, { marginTop: 2 }]}>{entry.description}</Text>}
-                {entry.url && <Link src={entry.url} style={s.link}>{entry.url}</Link>}
+                {entry.url && <Link src={ensureUrl(entry.url)} style={s.link}>{entry.url}</Link>}
               </View>
             ))}
           </View>
@@ -141,8 +150,8 @@ export function CVDocument({ data }: { data: CVData }) {
             {certificates.filter((e) => e.name).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <Text style={s.entryTitle}>{[entry.name, entry.issuer].filter(Boolean).join(" \u2013 ")}</Text>
-                <Text style={s.entryDate}>{[entry.date ? formatMonth(entry.date) : "", entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" \u00b7 ")}</Text>
-                {entry.url && <Link src={entry.url} style={s.link}>{entry.url}</Link>}
+                <Text style={s.entryDate}>{[[entry.date ? formatMonth(entry.date) : "", entry.expiryDate ? formatMonth(entry.expiryDate) : ""].filter(Boolean).join(" \u2013 "), entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" \u00b7 ")}</Text>
+                {entry.url && <Link src={ensureUrl(entry.url)} style={s.link}>{entry.url}</Link>}
               </View>
             ))}
           </View>
@@ -161,14 +170,35 @@ export function CVDocument({ data }: { data: CVData }) {
           </View>
         )}
 
-        {/* Portfolio */}
-        {portfolio.length > 0 && (
+        {/* Projects */}
+        {projects.length > 0 && (
           <View style={s.sectionWrap}>
-            <Text style={s.sectionTitle}>{data.portfolioTitle}</Text>
-            {portfolio.map((entry) => (
+            <Text style={s.sectionTitle}>{data.projectsTitle}</Text>
+            {projects.map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
-                {entry.url ? <Link src={entry.url} style={s.entryTitle}>{entry.name}</Link> : <Text style={s.entryTitle}>{entry.name}</Text>}
+                {entry.url ? <Link src={ensureUrl(entry.url)} style={s.entryTitle}>{entry.name}</Link> : <Text style={s.entryTitle}>{entry.name}</Text>}
                 {entry.description && <Text style={[s.bodyText, { marginTop: 2 }]}>{entry.description}</Text>}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Volunteer */}
+        {volunteer.some((e) => e.organization || e.role) && (
+          <View style={s.sectionWrap}>
+            <Text style={s.sectionTitle}>{data.volunteerTitle}</Text>
+            {volunteer.filter((e) => e.organization || e.role).map((entry) => (
+              <View key={entry.id} style={s.entryWrap} wrap={false}>
+                <Text style={s.entryTitle}>{[entry.role, entry.organization].filter(Boolean).join(" at ")}</Text>
+                {(entry.startDate || entry.endDate || entry.current) && (
+                  <Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")}</Text>
+                )}
+                {entry.description && entry.description.split("\n").filter((l) => l.trim()).map((line, i) => (
+                  <View key={i} style={s.bulletRow}>
+                    <Text style={s.bulletDot}>{"\u2022"}</Text>
+                    <Text style={s.bulletText}>{line.trim()}</Text>
+                  </View>
+                ))}
               </View>
             ))}
           </View>
