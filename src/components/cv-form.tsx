@@ -1683,7 +1683,7 @@ function SortableSection({ id, children }: { id: string; children: ReactNode }) 
     opacity: isDragging ? 0.5 : 1,
   }
   return (
-    <div ref={setNodeRef} style={style} className="relative">
+    <div ref={setNodeRef} style={{ ...style, contentVisibility: "auto", containIntrinsicSize: "auto 200px" }} className="relative">
       <div className="absolute -left-6 top-1 cursor-grab text-muted-foreground/50 hover:text-muted-foreground" {...attributes} {...listeners}>
         <GripVertical className="size-4" />
       </div>

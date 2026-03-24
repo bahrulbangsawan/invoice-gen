@@ -18,6 +18,26 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-router": ["@tanstack/react-router", "@tanstack/react-start"],
+          "vendor-assistant": [
+            "@assistant-ui/react",
+            "@assistant-ui/react-markdown",
+            "remark-gfm",
+          ],
+          "vendor-dnd": [
+            "@dnd-kit/core",
+            "@dnd-kit/sortable",
+            "@dnd-kit/utilities",
+          ],
+          "vendor-icons": ["lucide-react"],
+        },
+      },
+    },
+  },
 })
 
 export default config

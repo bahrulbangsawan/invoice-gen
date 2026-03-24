@@ -36,6 +36,7 @@ export const Route = createRootRoute({
         property: "og:image",
         content: "https://cv.bahrul.me/og-image.png",
       },
+      { name: "theme-color", content: "#ffffff" },
       // Twitter Card
       { name: "twitter:card", content: "summary_large_image" },
       {
@@ -109,7 +110,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <html lang="en">
+    <html lang="en" className="light" style={{ colorScheme: "light" }}>
       <head>
         <HeadContent />
         <script
