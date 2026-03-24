@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { MonthPicker } from "@/components/form/month-picker"
 
 interface FormFieldProps {
   label: string
@@ -14,6 +15,9 @@ interface FormFieldProps {
   disabled?: boolean
   multiline?: boolean
   rows?: number
+  step?: string | number
+  min?: string | number
+  max?: string | number
 }
 
 export function FormField({
@@ -27,6 +31,9 @@ export function FormField({
   disabled,
   multiline,
   rows = 2,
+  step,
+  min,
+  max,
 }: FormFieldProps) {
   return (
     <div className="space-y-1.5">
@@ -40,6 +47,12 @@ export function FormField({
           onBlur={onBlur}
           disabled={disabled}
         />
+      ) : type === "month" ? (
+        <MonthPicker
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+        />
       ) : (
         <Input
           type={type}
@@ -49,6 +62,9 @@ export function FormField({
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           disabled={disabled}
+          step={step}
+          min={min}
+          max={max}
         />
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}

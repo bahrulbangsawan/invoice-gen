@@ -89,12 +89,12 @@ export function BasicPreview({ data }: { data: CVData }) {
                 {education.filter((e) => e.institution || e.degree).map((entry) => (
                   <section key={entry.id} className="mt-4">
                     <h3 className="text-sm font-semibold text-neutral-900">{[entry.degree, entry.institution].filter(Boolean).join(" \u2013 ")}</h3>
-                    {(entry.startDate || entry.endDate || entry.current) && (
-                      <p className="text-xs text-neutral-500">{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</p>
-                    )}
-                    {entry.gpa && <p className="text-xs text-neutral-500">GPA: {entry.gpa}</p>}
-                    {entry.category && (
-                      <p className="text-xs text-neutral-500">{EDUCATION_CATEGORY_LABELS[entry.category]}</p>
+                    {(entry.startDate || entry.endDate || entry.current || entry.gpa || entry.category) && (
+                      <p className="text-xs text-neutral-500">{[
+                        [formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 "),
+                        entry.category ? EDUCATION_CATEGORY_LABELS[entry.category] : "",
+                        entry.gpa ? `GPA: ${entry.gpa}` : "",
+                      ].filter(Boolean).join(" \u00b7 ")}</p>
                     )}
                   </section>
                 ))}

@@ -52,14 +52,24 @@ export function getCVSuggestions(data: CVData): CVSuggestion[] {
     })
   }
 
+  suggestions.push({
+    title: "Review my entire CV",
+    description: "Get a full review of all sections",
+    prompt:
+      "Review @all sections and suggest improvements for each one. Focus on ATS optimization, strong action verbs, and quantified achievements.",
+  })
+
   return suggestions
 }
 
-const MENTION_REGEX = /@(personal-info|summary|experience|education|skills|awards|certificates|languages|projects|volunteer)\b/g
+const MENTION_REGEX = /@(all|personal-info|summary|experience|education|skills|awards|certificates|languages|projects|volunteer)\b/g
 
 export function extractMentions(text: string): CVSectionKey[] {
   const mentions: CVSectionKey[] = []
   for (const match of text.matchAll(MENTION_REGEX)) {
+    if (match[1] === "all") {
+      return CV_SECTIONS.map((s) => s.key)
+    }
     const key = match[1] as CVSectionKey
     if (CV_SECTIONS.some((s) => s.key === key) && !mentions.includes(key)) {
       mentions.push(key)

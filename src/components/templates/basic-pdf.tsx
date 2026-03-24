@@ -77,9 +77,13 @@ export function CVDocument({ data }: { data: CVData }) {
             {education.filter((e) => e.institution || e.degree).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <Text style={s.entryTitle}>{[entry.degree, entry.institution].filter(Boolean).join(" \u2013 ")}</Text>
-                {(entry.startDate || entry.endDate || entry.current) && (<Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")}</Text>)}
-                {entry.gpa && <Text style={s.entryDate}>GPA: {entry.gpa}</Text>}
-                {entry.category && <Text style={s.entryDate}>{EDUCATION_CATEGORY_LABELS[entry.category]}</Text>}
+                {(entry.startDate || entry.endDate || entry.current || entry.gpa || entry.category) && (
+                  <Text style={s.entryDate}>{[
+                    [formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 "),
+                    entry.category ? EDUCATION_CATEGORY_LABELS[entry.category] : "",
+                    entry.gpa ? `GPA: ${entry.gpa}` : "",
+                  ].filter(Boolean).join(" \u00b7 ")}</Text>
+                )}
               </View>
             ))}
           </View>

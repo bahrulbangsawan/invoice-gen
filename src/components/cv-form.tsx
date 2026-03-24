@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { FormField } from "@/components/form/form-field"
+import { MonthPicker } from "@/components/form/month-picker"
 import { SectionList } from "@/components/form/section-list"
 
 export interface PersonalInfo {
@@ -227,6 +228,11 @@ interface CVFormProps {
   data: CVData
   onChange: (data: CVData) => void
 }
+
+const currentMonth = (() => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+})()
 
 export function CVForm({ data, onChange }: CVFormProps) {
   const [skillInputs, setSkillInputs] = useState<Record<string, string>>({})
@@ -1044,13 +1050,11 @@ export function CVForm({ data, onChange }: CVFormProps) {
               />
               <div className="space-y-1.5">
                 <Label>End Date</Label>
-                <Input
-                  type="month"
+                <MonthPicker
                   value={entry.current ? "" : entry.endDate}
                   disabled={entry.current}
-                  onChange={(e) =>
-                    updateExperience(entry.id, "endDate", e.target.value)
-                  }
+                  max={currentMonth}
+                  onChange={(v) => updateExperience(entry.id, "endDate", v)}
                 />
                 <label className="flex items-center gap-1.5">
                   <input
@@ -1186,7 +1190,11 @@ export function CVForm({ data, onChange }: CVFormProps) {
             <div className="grid gap-3 sm:grid-cols-3">
               <FormField
                 label="GPA"
+                type="number"
                 placeholder="3.50"
+                step={0.01}
+                min={0}
+                max={4}
                 value={entry.gpa}
                 onChange={(v) => updateEducation(entry.id, "gpa", v)}
               />
@@ -1198,11 +1206,11 @@ export function CVForm({ data, onChange }: CVFormProps) {
               />
               <div className="space-y-1.5">
                 <Label>End Date</Label>
-                <Input
-                  type="month"
+                <MonthPicker
                   value={entry.current ? "" : entry.endDate}
                   disabled={entry.current}
-                  onChange={(e) => updateEducation(entry.id, "endDate", e.target.value)}
+                  max={currentMonth}
+                  onChange={(v) => updateEducation(entry.id, "endDate", v)}
                 />
                 <label className="flex items-center gap-1.5">
                   <input
@@ -1635,11 +1643,11 @@ export function CVForm({ data, onChange }: CVFormProps) {
               />
               <div className="space-y-1.5">
                 <Label>End Date</Label>
-                <Input
-                  type="month"
+                <MonthPicker
                   value={entry.current ? "" : entry.endDate}
                   disabled={entry.current}
-                  onChange={(e) => updateVolunteer(entry.id, "endDate", e.target.value)}
+                  max={currentMonth}
+                  onChange={(v) => updateVolunteer(entry.id, "endDate", v)}
                 />
                 <label className="flex items-center gap-1.5">
                   <input

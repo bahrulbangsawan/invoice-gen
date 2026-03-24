@@ -209,6 +209,7 @@ const ThreadSuggestions: FC = () => {
 };
 
 const CV_MENTION_ITEMS = [
+  { id: "all", type: "cv-section", label: "All Sections" },
   { id: "summary", type: "cv-section", label: "Summary" },
   { id: "experience", type: "cv-section", label: "Experience" },
   { id: "education", type: "cv-section", label: "Education" },
@@ -354,7 +355,7 @@ const Composer: FC = () => {
 };
 
 const MENTION_PATTERN =
-  /@(summary|experience|education|skills|awards|certificates|languages|personal-info|projects|volunteer)\b/;
+  /@(all|summary|experience|education|skills|awards|certificates|languages|personal-info|projects|volunteer)\b/;
 
 const ComposerAction: FC = () => {
   const hasMention = useAuiState((s) => MENTION_PATTERN.test(s.composer.text));

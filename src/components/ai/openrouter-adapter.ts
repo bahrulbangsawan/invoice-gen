@@ -3,7 +3,7 @@ import type { CVSectionKey } from "./cv-system-prompt"
 import { extractMentions } from "./cv-suggestions"
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-const DEFAULT_MODEL = "google/gemini-2.0-flash-001"
+const DEFAULT_MODEL = "deepseek/deepseek-v3.2"
 
 export interface ApplyAction {
   section: CVSectionKey
@@ -60,7 +60,9 @@ export function createOpenRouterAdapter({
           .map((p) => p.text)
           .join("") ?? ""
       const mentions = extractMentions(lastUserText)
-      const systemPrompt = buildSystemPromptWithMention(mentions[0])
+      const systemPrompt = buildSystemPromptWithMention(
+        mentions.length >= 10 ? undefined : mentions[0],
+      )
 
       const openRouterMessages = [
         { role: "system" as const, content: systemPrompt },

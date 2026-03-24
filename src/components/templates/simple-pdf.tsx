@@ -102,8 +102,12 @@ export function CVDocument({ data }: { data: CVData }) {
                       : "",
                   ].filter(Boolean).join(" | ")}
                 </Text>
-                {entry.gpa && <Text style={s.entryMeta}>GPA: {entry.gpa}</Text>}
-                {entry.category && <Text style={s.entryMeta}>{EDUCATION_CATEGORY_LABELS[entry.category]}</Text>}
+                {(entry.gpa || entry.category) && (
+                  <Text style={s.entryMeta}>{[
+                    entry.category ? EDUCATION_CATEGORY_LABELS[entry.category] : "",
+                    entry.gpa ? `GPA: ${entry.gpa}` : "",
+                  ].filter(Boolean).join(" \u00b7 ")}</Text>
+                )}
               </View>
             ))}
           </View>

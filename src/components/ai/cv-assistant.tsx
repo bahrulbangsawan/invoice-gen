@@ -37,6 +37,19 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
     const setter = onApplyRef.current
 
     switch (action.section) {
+      case "personal-info": {
+        // Format: "FullName | JobTitle | Email | Phone | Location | LinkedIn"
+        const parts = action.content.split("|").map((s) => s.trim())
+        const fields = ["fullName", "jobTitle", "email", "phone", "location", "linkedIn"] as const
+        const updates: Partial<Record<(typeof fields)[number], string>> = {}
+        for (let i = 0; i < fields.length; i++) {
+          const val = parts[i]
+          if (val) updates[fields[i]] = val
+        }
+        setter({ ...current, personalInfo: { ...current.personalInfo, ...updates } })
+        break
+      }
+
       case "summary":
         setter({ ...current, summary: action.content })
         break

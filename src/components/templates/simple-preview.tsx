@@ -107,12 +107,10 @@ export function SimplePreview({ data }: { data: CVData }) {
                         (entry.startDate || entry.endDate || entry.current)
                           ? [formatMonth(entry.startDate), entry.current ? "Present" : formatMonth(entry.endDate)].filter(Boolean).join(" \u2013 ")
                           : "",
+                        entry.category ? EDUCATION_CATEGORY_LABELS[entry.category] : "",
+                        entry.gpa ? `GPA: ${entry.gpa}` : "",
                       ].filter(Boolean).join(" | ")}
                     </p>
-                    {entry.gpa && <p className="text-xs text-neutral-600">GPA: {entry.gpa}</p>}
-                    {entry.category && (
-                      <p className="text-xs text-neutral-500">{EDUCATION_CATEGORY_LABELS[entry.category]}</p>
-                    )}
                   </section>
                 ))}
               </section>
