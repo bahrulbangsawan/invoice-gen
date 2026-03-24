@@ -64,6 +64,7 @@ export const LOCATION_POLICY_OPTIONS: { value: LocationPolicy; label: string }[]
 export interface ExperienceEntry {
   id: string
   company: string
+  url: string
   title: string
   workType: WorkType
   locationPolicy: LocationPolicy
@@ -260,6 +261,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
         {
           id,
           company: "",
+          url: "",
           title: "",
           workType: "" as WorkType,
           locationPolicy: "" as LocationPolicy,
@@ -281,6 +283,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
       const next = { ...prev }
       delete next[`exp-${id}-company`]
       delete next[`exp-${id}-title`]
+      delete next[`exp-${id}-url`]
       return next
     })
   }
@@ -948,7 +951,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
           !!(errors[`exp-${entry.id}-company`] || errors[`exp-${entry.id}-title`])
         }
         renderContent={(entry) => (
-          <>
+          <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <FormField
                 label="Company"
@@ -984,6 +987,31 @@ export function CVForm({ data, onChange }: CVFormProps) {
                   )
                 }}
               />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <FormField
+                label="Company URL"
+                type="url"
+                placeholder="https://..."
+                value={entry.url}
+                error={errors[`exp-${entry.id}-url`]}
+                onChange={(v) => {
+                  updateExperience(entry.id, "url", v)
+                  if (
+                    errors[`exp-${entry.id}-url`] &&
+                    (!v || /^https?:\/\/.+/.test(v))
+                  )
+                    updateError(`exp-${entry.id}-url`, undefined)
+                }}
+                onBlur={() => {
+                  updateError(
+                    `exp-${entry.id}-url`,
+                    entry.url && !/^https?:\/\/.+/.test(entry.url)
+                      ? "Must start with http:// or https://"
+                      : undefined
+                  )
+                }}
+              />
               <div className="space-y-1.5">
                 <Label>Work Type</Label>
                 <Select value={entry.workType || "__empty__"} onValueChange={(v) => updateExperience(entry.id, "workType", v === "__empty__" ? "" : v)}>
@@ -1006,6 +1034,8 @@ export function CVForm({ data, onChange }: CVFormProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid gap-3 grid-cols-2">
               <FormField
                 label="Start Date"
                 type="month"
@@ -1049,7 +1079,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
               onChange={(v) => updateExperience(entry.id, "description", v)}
               multiline
             />
-          </>
+          </div>
         )}
       />
     )
@@ -1211,6 +1241,13 @@ export function CVForm({ data, onChange }: CVFormProps) {
         onAdd={addSkillCategory}
         onRemove={removeSkillCategory}
         addLabel="Add Category"
+        titleExtra={
+          data.skills.length > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {data.skills.reduce((sum, c) => sum + c.items.length, 0)} skills
+            </span>
+          )
+        }
         summary={(category) => {
           if (category.name && category.items.length > 0)
             return `${category.name} (${category.items.length})`
@@ -1274,6 +1311,13 @@ export function CVForm({ data, onChange }: CVFormProps) {
         onAdd={addAward}
         onRemove={removeAward}
         addLabel="Add Award"
+        titleExtra={
+          data.awards.length > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {data.awards.length} {data.awards.length === 1 ? "award" : "awards"}
+            </span>
+          )
+        }
         summary={(entry, index) => {
           if (entry.title && entry.issuer)
             return `${entry.title} – ${entry.issuer}`
@@ -1348,10 +1392,36 @@ export function CVForm({ data, onChange }: CVFormProps) {
         onAdd={addCertificate}
         onRemove={removeCertificate}
         addLabel="Add Certificate"
+        titleExtra={
+          data.certificates.length > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {data.certificates.length} {data.certificates.length === 1 ? "certificate" : "certificates"}
+            </span>
+          )
+        }
         summary={(entry, index) => {
           if (entry.name && entry.issuer)
             return `${entry.name} – ${entry.issuer}`
           return entry.name || entry.issuer || `Certificate #${index + 1}`
+        }}
+        triggerExtra={(entry) => {
+          if (!entry.expiryDate) return null
+          const expiry = new Date(`${entry.expiryDate}-01`)
+          if (Number.isNaN(expiry.getTime())) return null
+          const now = new Date()
+          const isExpired = expiry < new Date(now.getFullYear(), now.getMonth(), 1)
+          if (isExpired) {
+            return (
+              <span className="shrink-0 text-[10px] text-destructive">
+                Expired {dateDiffLabel(expiry, now)} ago
+              </span>
+            )
+          }
+          return (
+            <span className="shrink-0 text-[10px] text-muted-foreground">
+              Expires in {dateDiffLabel(now, expiry)}
+            </span>
+          )
         }}
         renderContent={(entry) => (
           <>
@@ -1427,6 +1497,13 @@ export function CVForm({ data, onChange }: CVFormProps) {
         onAdd={addLanguage}
         onRemove={removeLanguage}
         addLabel="Add Language"
+        titleExtra={
+          data.languages.length > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {data.languages.length} {data.languages.length === 1 ? "language" : "languages"}
+            </span>
+          )
+        }
         summary={(entry, index) => {
           if (entry.language && entry.proficiency)
             return `${entry.language} – ${entry.proficiency}`
@@ -1463,6 +1540,13 @@ export function CVForm({ data, onChange }: CVFormProps) {
         onAdd={addProject}
         onRemove={removeProject}
         addLabel="Add Project"
+        titleExtra={
+          data.projects.length > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {data.projects.length} {data.projects.length === 1 ? "project" : "projects"}
+            </span>
+          )
+        }
         summary={(entry, index) => entry.name || `Project ${index + 1}`}
         renderContent={(entry) => (
           <div className="grid gap-3">
@@ -1504,11 +1588,30 @@ export function CVForm({ data, onChange }: CVFormProps) {
         onAdd={addVolunteer}
         onRemove={removeVolunteer}
         addLabel="Add Volunteer"
+        titleExtra={
+          data.volunteer.length > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {data.volunteer.length} {data.volunteer.length === 1 ? "activity" : "activities"}
+            </span>
+          )
+        }
         summary={(entry, index) => {
           if (entry.role && entry.organization)
             return `${entry.role} at ${entry.organization}`
           return entry.role || entry.organization || `Volunteer #${index + 1}`
         }}
+        triggerExtra={(entry) =>
+          entry.startDate ? (
+            <span className="shrink-0 text-[10px] text-muted-foreground">
+              {dateDiffLabel(
+                new Date(`${entry.startDate}-01`),
+                entry.current || !entry.endDate
+                  ? new Date()
+                  : new Date(`${entry.endDate}-01`),
+              )}
+            </span>
+          ) : null
+        }
         renderContent={(entry) => (
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">

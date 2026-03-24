@@ -66,6 +66,7 @@ const sampleData: CVData = {
     {
       id: "exp-1",
       company: "KYZN",
+      url: "",
       title: "Digital Marketing, Product Growth Analyst & Data Engineer",
       workType: "full-time",
       locationPolicy: "hybrid",
@@ -78,6 +79,7 @@ const sampleData: CVData = {
     {
       id: "exp-2",
       company: "Article36",
+      url: "",
       title: "Digital Strategist",
       workType: "full-time",
       locationPolicy: "work-from-anywhere",
@@ -90,6 +92,7 @@ const sampleData: CVData = {
     {
       id: "exp-3",
       company: "Skill Academy by Ruangguru",
+      url: "",
       title: "Assistant Lecturer",
       workType: "part-time",
       locationPolicy: "work-from-anywhere",
@@ -102,6 +105,7 @@ const sampleData: CVData = {
     {
       id: "exp-4",
       company: "The Surga Villa Estate",
+      url: "",
       title: "Digital Strategist",
       workType: "full-time",
       locationPolicy: "work-from-anywhere",
@@ -114,6 +118,7 @@ const sampleData: CVData = {
     {
       id: "exp-5",
       company: "The Rabbit Wins",
+      url: "",
       title: "Digital Strategist",
       workType: "full-time",
       locationPolicy: "work-from-anywhere",
@@ -126,6 +131,7 @@ const sampleData: CVData = {
     {
       id: "exp-6",
       company: "Growthacker",
+      url: "",
       title: "Co-Founder & Chief of Hacker",
       workType: "full-time",
       locationPolicy: "work-from-anywhere",
@@ -138,6 +144,7 @@ const sampleData: CVData = {
     {
       id: "exp-7",
       company: "Mulai Coding",
+      url: "",
       title: "Digital Strategist",
       workType: "full-time",
       locationPolicy: "work-from-anywhere",
@@ -150,6 +157,7 @@ const sampleData: CVData = {
     {
       id: "exp-8",
       company: "Sultan Alauddin Hotel & Convention",
+      url: "",
       title: "IT Support Technician",
       workType: "internship",
       locationPolicy: "work-from-office",
@@ -162,6 +170,7 @@ const sampleData: CVData = {
     {
       id: "exp-9",
       company: "Chevalier Laboratory SAS",
+      url: "",
       title: "Assistant Lecturer",
       workType: "part-time",
       locationPolicy: "work-from-office",
@@ -174,6 +183,7 @@ const sampleData: CVData = {
     {
       id: "exp-10",
       company: "Badan Mentoring Telkom University",
+      url: "",
       title: "Mentor",
       workType: "part-time",
       locationPolicy: "work-from-office",
@@ -186,6 +196,7 @@ const sampleData: CVData = {
     {
       id: "exp-11",
       company: "Badan Pemeriksa Keuangan RI",
+      url: "",
       title: "IT Support Intern",
       workType: "internship",
       locationPolicy: "work-from-office",

@@ -94,7 +94,7 @@ export function CVDocument({ data }: { data: CVData }) {
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <View style={s.entryRow}>
                   <Text style={s.entryTitle}>
-                    {entry.title}{entry.title && entry.company ? ", " : ""}{entry.company}
+                    {entry.title}{entry.title && entry.company ? ", " : ""}{entry.url ? <Link src={ensureUrl(entry.url)}>{entry.company}</Link> : entry.company}
                   </Text>
                   {(entry.startDate || entry.endDate || entry.current) && (
                     <Text style={s.entryDate}>
@@ -179,12 +179,11 @@ export function CVDocument({ data }: { data: CVData }) {
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 <View style={s.entryRow}>
                   <Text style={s.entryTitle}>
-                    {entry.name}{entry.issuer ? `, ${entry.issuer}` : ""}
+                    {entry.url ? <Link src={ensureUrl(entry.url)}>{entry.name}</Link> : entry.name}{entry.issuer ? `, ${entry.issuer}` : ""}
                   </Text>
                   {(entry.date || entry.expiryDate) && <Text style={s.entryDate}>{[entry.date ? formatMonth(entry.date) : "", entry.expiryDate ? formatMonth(entry.expiryDate) : ""].filter(Boolean).join(" \u2013 ")}</Text>}
                 </View>
                 {entry.credentialId && <Text style={s.entrySubtext}>Credential ID: {entry.credentialId}</Text>}
-                {entry.url && <Link src={ensureUrl(entry.url)} style={s.link}>{entry.url}</Link>}
               </View>
             ))}
           </View>

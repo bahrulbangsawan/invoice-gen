@@ -80,7 +80,7 @@ export function CVDocument({ data }: { data: CVData }) {
             <Text style={s.sectionTitle}>{data.experienceTitle}</Text>
             {experience.filter((e) => e.company || e.title).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
-                <Text style={s.entryTitle}>{[entry.title, entry.company].filter(Boolean).join(" at ")}</Text>
+                <Text style={s.entryTitle}>{entry.title}{entry.title && entry.company ? " at " : ""}{entry.url ? <Link src={ensureUrl(entry.url)}>{entry.company}</Link> : entry.company}</Text>
                 {(entry.startDate || entry.endDate || entry.current) && (
                   <Text style={s.entryDate}>{[formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")}</Text>
                 )}
@@ -149,9 +149,8 @@ export function CVDocument({ data }: { data: CVData }) {
             <Text style={s.sectionTitle}>{data.certificatesTitle}</Text>
             {certificates.filter((e) => e.name).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
-                <Text style={s.entryTitle}>{[entry.name, entry.issuer].filter(Boolean).join(" \u2013 ")}</Text>
+                <Text style={s.entryTitle}>{entry.url ? <Link src={ensureUrl(entry.url)}>{entry.name}</Link> : entry.name}{entry.name && entry.issuer ? " \u2013 " : ""}{entry.issuer}</Text>
                 <Text style={s.entryDate}>{[[entry.date ? formatMonth(entry.date) : "", entry.expiryDate ? formatMonth(entry.expiryDate) : ""].filter(Boolean).join(" \u2013 "), entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" \u00b7 ")}</Text>
-                {entry.url && <Link src={ensureUrl(entry.url)} style={s.link}>{entry.url}</Link>}
               </View>
             ))}
           </View>

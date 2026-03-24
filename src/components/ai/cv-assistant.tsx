@@ -6,6 +6,7 @@ import {
 } from "@assistant-ui/react"
 import type { CVData } from "@/components/cv-form"
 import { AssistantModal } from "@/components/assistant-ui/assistant-modal"
+import { CVDataContext } from "./cv-data-context"
 import { ApiKeyDialog } from "./api-key-dialog"
 import { useApiKey } from "./use-api-key"
 import {
@@ -310,13 +311,15 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
 
   return (
     <>
-      <AssistantRuntimeProvider runtime={runtime}>
-        <AssistantModal />
-      </AssistantRuntimeProvider>
+      <CVDataContext value={data}>
+        <AssistantRuntimeProvider runtime={runtime}>
+          <AssistantModal />
+        </AssistantRuntimeProvider>
+      </CVDataContext>
       <button
         type="button"
         onClick={() => setKeyDialogOpen(true)}
-        className="fixed right-4 bottom-18 z-50 flex size-8 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform hover:scale-110 hover:bg-accent active:scale-90"
+        className="fixed right-4 bottom-18 z-50 flex size-8 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform hover:scale-110 hover:bg-accent hover:text-accent-foreground active:scale-90"
         aria-label="API Key Settings"
       >
         <KeyRound className="size-4" />

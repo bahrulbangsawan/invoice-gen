@@ -6,6 +6,8 @@ import {
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { useCVData } from "@/components/ai/cv-data-context";
+import type { CVData } from "@/components/cv-form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -24,15 +26,20 @@ import {
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  BriefcaseBusinessIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
+  CrosshairIcon,
   DownloadIcon,
+  LightbulbIcon,
   MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
+  SparklesIcon,
   SquareIcon,
+  TextIcon,
 } from "lucide-react";
 import type { FC } from "react";
 
@@ -91,14 +98,17 @@ const ThreadScrollToBottom: FC = () => {
 
 const ThreadWelcome: FC = () => {
   return (
-    <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
-      <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
-        <div className="aui-thread-welcome-message flex size-full flex-col justify-center px-2">
-          <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-base duration-200">
+    <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col justify-center gap-6 px-2 py-6">
+      <div className="aui-thread-welcome-center flex flex-col items-center gap-3 text-center">
+        <div className="fade-in zoom-in-75 animate-in fill-mode-both flex size-10 items-center justify-center rounded-xl bg-primary/10 duration-300">
+          <SparklesIcon className="size-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-base tracking-tight duration-200">
             CV Assistant
           </h1>
-          <p className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xs delay-75 duration-200">
-            Ask me to improve or generate CV content
+          <p className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xs delay-75 duration-200">
+            Improve, generate, or tailor your CV content
           </p>
         </div>
       </div>
@@ -109,33 +119,47 @@ const ThreadWelcome: FC = () => {
 
 const WELCOME_SUGGESTIONS = [
   {
+    icon: TextIcon,
     title: "Write a @summary",
     description: "Generate a professional summary",
     prompt:
       "Write a professional @summary based on my experience and skills. Keep it 3-4 sentences.",
+    isDisabled: (d: CVData) =>
+      d.experience.length === 0 && d.skills.length === 0,
   },
   {
+    icon: BriefcaseBusinessIcon,
     title: "Strengthen @experience",
     description: "Add metrics and action verbs",
     prompt:
       "Review my @experience bullet points and rewrite them using strong action verbs and quantifiable achievements.",
+    isDisabled: (d: CVData) => d.experience.length === 0,
   },
   {
+    icon: LightbulbIcon,
     title: "Optimize @skills",
     description: "Suggest missing skills for my role",
     prompt:
       "Review my @skills and suggest any important skills I might be missing for my role.",
+    isDisabled: (d: CVData) => d.skills.length === 0,
   },
   {
+    icon: CrosshairIcon,
     title: "Tailor for a job posting",
     description: "Paste a job description to optimize",
     prompt:
       "I want to tailor my CV for a specific role. Here's the job description: ",
+    isDisabled: (d: CVData) =>
+      !d.summary &&
+      d.experience.length === 0 &&
+      d.skills.length === 0 &&
+      d.education.length === 0,
   },
 ];
 
 const ThreadSuggestions: FC = () => {
   const aui = useAui();
+  const cvData = useCVData();
 
   function handleSuggestion(prompt: string) {
     const send = !prompt.endsWith(": ") && !prompt.endsWith(" ");
@@ -149,26 +173,37 @@ const ThreadSuggestions: FC = () => {
   }
 
   return (
-    <div className="aui-thread-welcome-suggestions grid w-full grid-cols-2 gap-1.5 pb-2">
-      {WELCOME_SUGGESTIONS.map((s) => (
-        <div
-          key={s.title}
-          className="aui-thread-welcome-suggestion-display fade-in slide-in-from-bottom-2 animate-in fill-mode-both duration-200"
-        >
-          <Button
-            variant="ghost"
-            onClick={() => handleSuggestion(s.prompt)}
-            className="aui-thread-welcome-suggestion h-auto w-full flex-col items-start justify-start gap-0.5 rounded-xl border bg-background px-2.5 py-2 text-left text-xs transition-colors hover:bg-muted"
+    <div className="aui-thread-welcome-suggestions grid w-full grid-cols-2 gap-2 overflow-hidden pb-2">
+      {WELCOME_SUGGESTIONS.map((s, i) => {
+        const Icon = s.icon;
+        const disabled = cvData ? s.isDisabled(cvData) : true;
+        return (
+          <div
+            key={s.title}
+            className="fade-in slide-in-from-bottom-2 animate-in fill-mode-both min-w-0 duration-200"
+            style={{ animationDelay: `${100 + i * 50}ms` }}
           >
-            <span className="aui-thread-welcome-suggestion-text-1 font-medium text-xs">
-              {s.title}
-            </span>
-            <span className="aui-thread-welcome-suggestion-text-2 text-[11px] text-muted-foreground">
-              {s.description}
-            </span>
-          </Button>
-        </div>
-      ))}
+            <Button
+              variant="ghost"
+              disabled={disabled}
+              onClick={() => handleSuggestion(s.prompt)}
+              className="group h-auto w-full flex-col items-start justify-start gap-1.5 overflow-hidden rounded-xl border bg-background px-2.5 py-2 text-left text-xs shadow-xs transition-all hover:bg-muted hover:shadow-sm disabled:pointer-events-none disabled:opacity-40"
+            >
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted transition-colors group-hover:bg-primary/10">
+                <Icon className="size-3 text-muted-foreground transition-colors group-hover:text-primary" />
+              </div>
+              <div className="flex w-full min-w-0 flex-col gap-0.5">
+                <span className="truncate font-medium text-xs leading-tight">
+                  {s.title}
+                </span>
+                <span className="truncate text-[10px] leading-tight text-muted-foreground">
+                  {s.description}
+                </span>
+              </div>
+            </Button>
+          </div>
+        );
+      })}
     </div>
   );
 };

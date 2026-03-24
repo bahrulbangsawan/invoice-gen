@@ -69,12 +69,9 @@ export function CVDocument({ data }: { data: CVData }) {
               <View key={entry.id} style={s.entryWrap} wrap={false}>
                 {entry.title && <Text style={s.entryTitle}>{entry.title}</Text>}
                 <Text style={s.entryMeta}>
-                  {[
-                    entry.company,
-                    (entry.startDate || entry.endDate || entry.current)
-                      ? [formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")
-                      : "",
-                  ].filter(Boolean).join(" | ")}
+                  {entry.company && (entry.url ? <Link src={ensureUrl(entry.url)}>{entry.company}</Link> : entry.company)}
+                  {entry.company && (entry.startDate || entry.endDate || entry.current) ? " | " : ""}
+                  {(entry.startDate || entry.endDate || entry.current) && [formatMonth(entry.startDate), entry.current ? "Present" : entry.endDate ? formatMonth(entry.endDate) : "Present"].filter(Boolean).join(" \u2013 ")}
                 </Text>
                 {(entry.workType || entry.locationPolicy) && (
                   <Text style={s.entryMeta}>{[WORK_TYPE_LABELS[entry.workType], LOCATION_LABELS[entry.locationPolicy]].filter(Boolean).join(" \u00b7 ")}</Text>
@@ -148,11 +145,10 @@ export function CVDocument({ data }: { data: CVData }) {
             <Text style={s.sectionTitle}>{data.certificatesTitle}</Text>
             {certificates.filter((e) => e.name).map((entry) => (
               <View key={entry.id} style={s.entryWrap} wrap={false}>
-                <Text style={s.entryTitle}>{entry.name}</Text>
+                {entry.url ? <Link src={ensureUrl(entry.url)} style={s.entryTitle}>{entry.name}</Link> : <Text style={s.entryTitle}>{entry.name}</Text>}
                 <Text style={s.entryMeta}>
                   {[entry.issuer, [entry.date ? formatMonth(entry.date) : "", entry.expiryDate ? formatMonth(entry.expiryDate) : ""].filter(Boolean).join(" \u2013 "), entry.credentialId ? `ID: ${entry.credentialId}` : ""].filter(Boolean).join(" | ")}
                 </Text>
-                {entry.url && <Link src={ensureUrl(entry.url)} style={s.link}>{entry.url}</Link>}
               </View>
             ))}
           </View>
