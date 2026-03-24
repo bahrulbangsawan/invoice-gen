@@ -52,7 +52,25 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
           setter({ ...current, experience })
         } else if (action.index === undefined) {
           // Format: "Company | URL | Title | WorkType | LocationPolicy | StartDate | EndDate | Description" per line
-          const expLines = action.content.split("\n").filter((l) => l.trim())
+          const rawLines = action.content.split("\n").filter((l) => l.trim())
+          // Merge continuation lines (lines without enough | separators) into the previous entry
+          const expLines: string[] = []
+          for (const line of rawLines) {
+            const pipeCount = (line.match(/\|/g) || []).length
+            if (pipeCount >= 6) {
+              // Full entry line (Company | URL | Title | WorkType | LocationPolicy | StartDate | EndDate | Description)
+              expLines.push(line)
+            } else if (expLines.length > 0) {
+              // Continuation line — append to previous entry's description
+              const prev = expLines[expLines.length - 1]
+              const lastPipe = prev.lastIndexOf("|")
+              if (lastPipe >= 0) {
+                // Append with \n so it becomes a separate bullet in the description
+                expLines[expLines.length - 1] = `${prev}\n${line.trim()}`
+              }
+            }
+          }
+
           const existingExp = new Map(
             current.experience.map((e) => [
               `${e.company}|${e.title}`.toLowerCase(),
@@ -68,6 +86,12 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
             const key = `${company}|${title}`.toLowerCase()
             const existing = existingExp.get(key)
             const endDate = parts[6] ?? existing?.endDate ?? ""
+            // Description is everything after the 7th pipe — may contain \n for bullets
+            // Also handle ;; separator for multi-bullet descriptions
+            const rawDesc = parts.slice(7).join("|").trim()
+            const description = rawDesc
+              ? rawDesc.split(";;").map((s) => s.trim()).join("\n")
+              : existing?.description ?? ""
             existingExp.set(key, {
               id: existing?.id ?? crypto.randomUUID(),
               company,
@@ -78,7 +102,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
               startDate: parts[5] ?? existing?.startDate ?? "",
               endDate: endDate === "Present" ? "" : endDate,
               current: endDate === "Present",
-              description: parts[7] ?? existing?.description ?? "",
+              description,
             })
           }
 
@@ -265,7 +289,17 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
 
       case "volunteer": {
         // Format: "Organization | Role | StartDate | EndDate | Description" per line
-        const volLines = action.content.split("\n").filter((l) => l.trim())
+        const rawVolLines = action.content.split("\n").filter((l) => l.trim())
+        const volLines: string[] = []
+        for (const line of rawVolLines) {
+          const pipeCount = (line.match(/\|/g) || []).length
+          if (pipeCount >= 3) {
+            volLines.push(line)
+          } else if (volLines.length > 0) {
+            volLines[volLines.length - 1] = `${volLines[volLines.length - 1]}\n${line.trim()}`
+          }
+        }
+
         const existingVol = new Map(
           current.volunteer.map((v) => [
             `${v.organization}|${v.role}`.toLowerCase(),
@@ -281,6 +315,10 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
           const key = `${organization}|${role}`.toLowerCase()
           const existing = existingVol.get(key)
           const endDate = parts[3] ?? existing?.endDate ?? ""
+          const rawDesc = parts.slice(4).join("|").trim()
+          const description = rawDesc
+            ? rawDesc.split(";;").map((s) => s.trim()).join("\n")
+            : existing?.description ?? ""
           existingVol.set(key, {
             id: existing?.id ?? crypto.randomUUID(),
             organization,
@@ -288,7 +326,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
             startDate: parts[2] ?? existing?.startDate ?? "",
             endDate: endDate === "Present" ? "" : endDate,
             current: endDate === "Present",
-            description: parts[4] ?? existing?.description ?? "",
+            description,
           })
         }
 

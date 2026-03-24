@@ -149,11 +149,12 @@ bullet2</apply>
 
 Experience (full entries without index — Company | URL | Title | WorkType | LocationPolicy | StartDate | EndDate | Description):
 <apply section="experience">
-Acme Corp | https://acme.com | Software Engineer | full-time | remote | 2020-01 | Present | Led frontend architecture
-Startup Inc | | Junior Dev | contract | on-site | 2018-06 | 2019-12 | Built REST APIs
+Acme Corp | https://acme.com | Software Engineer | full-time | work-from-anywhere | 2020-01 | Present | Led frontend architecture ;; Built scalable APIs ;; Mentored junior developers
+Startup Inc | | Junior Dev | internship | work-from-office | 2018-06 | 2019-12 | Built REST APIs ;; Wrote unit tests
 </apply>
-WorkType values: full-time, part-time, contract, freelance, internship, apprenticeship
-LocationPolicy values: on-site, remote, work-from-anywhere, hybrid
+IMPORTANT: For multiple bullet points in Description, separate them with ;; (double semicolon). Each ;; becomes a separate bullet point.
+WorkType values: full-time, part-time, internship (or empty for not specified)
+LocationPolicy values: work-from-office, work-from-anywhere, hybrid (or empty for not specified)
 
 Skills (CategoryName: items):
 <apply section="skills">
@@ -190,7 +191,7 @@ CV Builder | https://cv.bahrul.me | AI-powered CV builder with real-time preview
 
 Volunteer (Organization | Role | StartDate | EndDate | Description):
 <apply section="volunteer">
-Red Cross | Volunteer Coordinator | 2020-01 | 2021-06 | Organized community outreach programs
+Red Cross | Volunteer Coordinator | 2020-01 | 2021-06 | Organized community outreach programs ;; Led team of 10 volunteers
 </apply>
 
 IMPORTANT: Include ALL existing entries plus new ones. Do not drop entries.
