@@ -937,7 +937,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
         summary={experienceSummary}
         triggerExtra={(entry) =>
           entry.startDate ? (
-            <span className="shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-[0.625rem] text-muted-foreground">
               {dateDiffLabel(
                 new Date(`${entry.startDate}-01`),
                 entry.current || !entry.endDate
@@ -1035,7 +1035,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
                 </Select>
               </div>
             </div>
-            <div className="grid gap-3 grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 label="Start Date"
                 type="month"
@@ -1121,7 +1121,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
         }}
         triggerExtra={(entry) =>
           entry.startDate ? (
-            <span className="shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-[0.625rem] text-muted-foreground">
               {dateDiffLabel(
                 new Date(`${entry.startDate}-01`),
                 entry.current || !entry.endDate
@@ -1412,13 +1412,13 @@ export function CVForm({ data, onChange }: CVFormProps) {
           const isExpired = expiry < new Date(now.getFullYear(), now.getMonth(), 1)
           if (isExpired) {
             return (
-              <span className="shrink-0 text-[10px] text-destructive">
+              <span className="shrink-0 text-[0.625rem] text-destructive">
                 Expired {dateDiffLabel(expiry, now)} ago
               </span>
             )
           }
           return (
-            <span className="shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-[0.625rem] text-muted-foreground">
               Expires in {dateDiffLabel(now, expiry)}
             </span>
           )
@@ -1602,7 +1602,7 @@ export function CVForm({ data, onChange }: CVFormProps) {
         }}
         triggerExtra={(entry) =>
           entry.startDate ? (
-            <span className="shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-[0.625rem] text-muted-foreground">
               {dateDiffLabel(
                 new Date(`${entry.startDate}-01`),
                 entry.current || !entry.endDate

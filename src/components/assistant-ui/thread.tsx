@@ -196,7 +196,7 @@ const ThreadSuggestions: FC = () => {
                 <span className="truncate font-medium text-xs leading-tight">
                   {s.title}
                 </span>
-                <span className="truncate text-[10px] leading-tight text-muted-foreground">
+                <span className="truncate text-[0.625rem] leading-tight text-muted-foreground">
                   {s.description}
                 </span>
               </div>
@@ -364,7 +364,7 @@ const ComposerAction: FC = () => {
       <div className="flex items-center gap-1">
         <ComposerAddAttachment />
         {!hasMention && (
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[0.625rem] text-muted-foreground">
             Use @ to mention a section
           </span>
         )}

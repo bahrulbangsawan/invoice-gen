@@ -55,6 +55,7 @@ function CVGenerator() {
   const [style, setStyle] = useState<CVStyle>("basic")
   const [generating, setGenerating] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isEmpty = !data.personalInfo.fullName.trim()
 
   const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -232,7 +233,7 @@ function CVGenerator() {
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload data-icon="inline-start" />
-            Import JSON
+            <span className="hidden sm:inline">Import JSON</span>
           </Button>
           <input
             ref={fileInputRef}
@@ -247,7 +248,7 @@ function CVGenerator() {
             onClick={() => setData(sampleData as CVData)}
           >
             <UserRoundPen data-icon="inline-start" />
-            Pre-Fill Example
+            <span className="hidden sm:inline">Pre-Fill Example</span>
           </Button>
         </div>
         <div className="p-6">
@@ -255,7 +256,7 @@ function CVGenerator() {
         </div>
       </div>
       <div className="h-svh w-full overflow-y-auto bg-muted/50 md:w-1/2">
-        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-muted/50 px-6 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/50 px-6 py-3">
           <div className="flex gap-1">
             {(["basic", "harvard", "simple", "standard"] as const).map((s) => (
               <Button
@@ -271,7 +272,7 @@ function CVGenerator() {
           <div className="ml-auto hidden md:block">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="lg" disabled={generating}>
+                <Button size="lg" disabled={isEmpty || generating}>
                   {generating ? (
                     <Loader2 className="animate-spin" data-icon="inline-start" />
                   ) : (
@@ -306,7 +307,7 @@ function CVGenerator() {
       <div className="fixed bottom-6 left-6 z-50 md:hidden">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="icon" disabled={generating} className="size-12 rounded-full shadow-lg">
+            <Button size="icon" disabled={isEmpty || generating} className="size-12 rounded-full shadow-lg">
               {generating ? (
                 <Loader2 className="animate-spin" />
               ) : (
