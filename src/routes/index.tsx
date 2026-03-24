@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { Download, Loader2, UserRoundPen } from "lucide-react"
-import { CVForm, type CVData } from "@/components/cv-form"
+import { CVForm, type CVData, type CVStyle } from "@/components/cv-form"
 import { CVPreview } from "@/components/cv-preview"
 import { Button } from "@/components/ui/button"
 
@@ -15,6 +15,8 @@ const initialData: CVData = {
     phone: "",
     location: "",
     linkedIn: "",
+    photoUrl: "",
+    usePhoto: false,
   },
   summaryTitle: "Professional Summary",
   summary: "",
@@ -40,6 +42,8 @@ const sampleData: CVData = {
     phone: "+6281234567890",
     location: "Makassar, Indonesia",
     linkedIn: "bahrulbangsawan",
+    photoUrl: "",
+    usePhoto: false,
   },
   summaryTitle: "Professional Summary",
   summary:
@@ -93,12 +97,25 @@ const sampleData: CVData = {
     {
       id: "skill-cat-1",
       name: "Hard Skills",
-      items: ["TypeScript", "React", "TanStack Start", "Node.js", "PostgreSQL", "Tailwind CSS"],
+      items: [
+        "TypeScript",
+        "React",
+        "TanStack Start",
+        "Node.js",
+        "PostgreSQL",
+        "Tailwind CSS",
+      ],
     },
     {
       id: "skill-cat-2",
       name: "Soft Skills",
-      items: ["Leadership", "Communication", "Problem Solving", "A/B Testing", "Data Analytics"],
+      items: [
+        "Leadership",
+        "Communication",
+        "Problem Solving",
+        "A/B Testing",
+        "Data Analytics",
+      ],
     },
     {
       id: "skill-cat-3",
@@ -147,62 +164,38 @@ const sampleData: CVData = {
 
 function CVGenerator() {
   const [data, setData] = useState<CVData>(initialData)
+  const [style, setStyle] = useState<CVStyle>("basic")
   const [generating, setGenerating] = useState(false)
 
-  const handleDownloadPDF = useCallback(async () => {
-    const element = document.getElementById("cv-content")
-    if (!element) return
+  const handleDownloadPDF = async () => {
+    if (typeof window === "undefined") return
 
     setGenerating(true)
     try {
-      const [html2canvasMod, jsPDFMod] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ])
-      const html2canvas = html2canvasMod.default
-      const { jsPDF } = jsPDFMod
+      const { pdf } = await import("@react-pdf/renderer")
+      const { CVDocument } = await import("@/components/cv-pdf")
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      })
+      const blob = await pdf(<CVDocument data={data} style={style} />).toBlob()
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.98)
-      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" })
-
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const margin = 10
-      const contentWidth = pageWidth - margin * 2
-      const contentHeight = (canvas.height * contentWidth) / canvas.width
-      let position = margin
-
-      // First page
-      pdf.addImage(imgData, "JPEG", margin, position, contentWidth, contentHeight)
-
-      // Add extra pages if content overflows
-      let remainingHeight = contentHeight - (pageHeight - margin * 2)
-      while (remainingHeight > 0) {
-        pdf.addPage()
-        position = margin - (contentHeight - remainingHeight)
-        pdf.addImage(imgData, "JPEG", margin, position, contentWidth, contentHeight)
-        remainingHeight -= pageHeight - margin * 2
-      }
-
-      const filename = data.personalInfo.fullName
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = data.personalInfo.fullName
         ? `${data.personalInfo.fullName.replace(/\s+/g, "-")}-CV.pdf`
         : "CV.pdf"
-      pdf.save(filename)
+      a.click()
+      URL.revokeObjectURL(url)
     } catch (err) {
       console.error("PDF generation failed:", err)
+      alert("Failed to generate PDF. Check the browser console for details.")
     } finally {
       setGenerating(false)
     }
-  }, [data.personalInfo.fullName])
+  }
 
   return (
     <div className="flex min-h-svh flex-col md:flex-row">
+      <h1 className="sr-only">CV Builder & Resume Generator — Bahrul Bangsawan</h1>
       <div className="w-full overflow-y-auto border-b border-border md:h-svh md:w-1/2 md:border-r md:border-b-0">
         <div className="flex items-center justify-end border-b border-border px-6 py-3">
           <Button
@@ -219,22 +212,32 @@ function CVGenerator() {
         </div>
       </div>
       <div className="w-full overflow-y-auto bg-muted/50 md:h-svh md:w-1/2">
-        <div className="flex items-center justify-end border-b border-border px-6 py-3">
-          <Button
-            size="lg"
-            onClick={handleDownloadPDF}
-            disabled={generating}
-          >
-            {generating ? (
-              <Loader2 className="animate-spin" data-icon="inline-start" />
-            ) : (
-              <Download data-icon="inline-start" />
-            )}
-            {generating ? "Generating..." : "Download PDF"}
-          </Button>
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-6 py-3">
+          <div className="flex gap-1">
+            {(["basic", "harvard", "simple", "standard"] as const).map((s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant={style === s ? "default" : "outline"}
+                onClick={() => setStyle(s)}
+              >
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </Button>
+            ))}
+          </div>
+          <div className="ml-auto">
+            <Button size="lg" onClick={handleDownloadPDF} disabled={generating}>
+              {generating ? (
+                <Loader2 className="animate-spin" data-icon="inline-start" />
+              ) : (
+                <Download data-icon="inline-start" />
+              )}
+              {generating ? "Generating..." : "Download PDF"}
+            </Button>
+          </div>
         </div>
         <div className="p-6">
-          <CVPreview data={data} />
+          <CVPreview data={data} style={style} />
         </div>
       </div>
     </div>

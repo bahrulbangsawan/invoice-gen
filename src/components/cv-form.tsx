@@ -18,7 +18,8 @@ import {
   InputGroupText,
 } from "@/components/ui/input-group"
 import { PhoneInput } from "@/components/reui/phone-input"
-import { Plus, X } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Plus, X, Upload, Trash2 } from "lucide-react"
 
 export interface PersonalInfo {
   fullName: string
@@ -27,6 +28,8 @@ export interface PersonalInfo {
   phone: string
   location: string
   linkedIn: string
+  photoUrl: string
+  usePhoto: boolean
 }
 
 export interface ExperienceEntry {
@@ -71,6 +74,8 @@ export interface LanguageEntry {
   language: string
   proficiency: string
 }
+
+export type CVStyle = "basic" | "harvard" | "simple" | "standard"
 
 export interface SkillCategory {
   id: string
@@ -532,6 +537,81 @@ export function CVForm({ data, onChange }: CVFormProps) {
                 onChange={(e) => updatePersonal("linkedIn", e.target.value)}
               />
             </InputGroup>
+          </div>
+
+          {/* Photo Profile */}
+          <div className="col-span-full space-y-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="usePhoto"
+                checked={data.personalInfo.usePhoto}
+                onCheckedChange={(checked) =>
+                  onChange({
+                    ...data,
+                    personalInfo: { ...data.personalInfo, usePhoto: checked },
+                  })
+                }
+              />
+              <Label htmlFor="usePhoto">Use Photo Profile</Label>
+            </div>
+            {data.personalInfo.usePhoto && (
+              <div className="flex items-center gap-3">
+                {data.personalInfo.photoUrl ? (
+                  <>
+                    <img
+                      src={data.personalInfo.photoUrl}
+                      alt="Profile"
+                      className="size-16 rounded-full border border-border object-cover"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        onChange({
+                          ...data,
+                          personalInfo: { ...data.personalInfo, photoUrl: "" },
+                        })
+                      }
+                    >
+                      <Trash2 className="size-3" /> Remove
+                    </Button>
+                  </>
+                ) : (
+                  <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-4 py-3 text-sm text-muted-foreground hover:border-foreground/30">
+                    <Upload className="size-4" />
+                    Upload Photo
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        if (file.size > 2 * 1024 * 1024) {
+                          updateError("photo", "Max file size is 2MB")
+                          return
+                        }
+                        updateError("photo", undefined)
+                        const reader = new FileReader()
+                        reader.onload = () => {
+                          onChange({
+                            ...data,
+                            personalInfo: {
+                              ...data.personalInfo,
+                              photoUrl: reader.result as string,
+                            },
+                          })
+                        }
+                        reader.readAsDataURL(file)
+                      }}
+                    />
+                  </label>
+                )}
+                {errors.photo && (
+                  <p className="text-xs text-destructive">{errors.photo}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
