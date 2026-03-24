@@ -4,7 +4,7 @@ import {
   useLocalRuntime,
   type SuggestionAdapter,
 } from "@assistant-ui/react"
-import type { CVData } from "@/components/cv-form"
+import type { CVData, ExperienceEntry } from "@/components/cv-form"
 import { AssistantModal } from "@/components/assistant-ui/assistant-modal"
 import { CVDataContext } from "./cv-data-context"
 import { ApiKeyDialog } from "./api-key-dialog"
@@ -43,15 +43,47 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
 
       case "experience": {
         if (action.index !== undefined && current.experience[action.index]) {
-          // Update specific entry's description
+          // Update specific entry — description only (bullets)
           const experience = [...current.experience]
           experience[action.index] = {
             ...experience[action.index],
             description: action.content,
           }
           setter({ ...current, experience })
+        } else if (action.index === undefined) {
+          // Format: "Company | URL | Title | WorkType | LocationPolicy | StartDate | EndDate | Description" per line
+          const expLines = action.content.split("\n").filter((l) => l.trim())
+          const existingExp = new Map(
+            current.experience.map((e) => [
+              `${e.company}|${e.title}`.toLowerCase(),
+              e,
+            ]),
+          )
+
+          for (const line of expLines) {
+            const parts = line.split("|").map((s) => s.trim())
+            const company = parts[0] ?? ""
+            if (!company) continue
+            const title = parts[2] ?? ""
+            const key = `${company}|${title}`.toLowerCase()
+            const existing = existingExp.get(key)
+            const endDate = parts[6] ?? existing?.endDate ?? ""
+            existingExp.set(key, {
+              id: existing?.id ?? crypto.randomUUID(),
+              company,
+              url: parts[1] ?? existing?.url ?? "",
+              title,
+              workType: (parts[3] ?? existing?.workType ?? "") as ExperienceEntry["workType"],
+              locationPolicy: (parts[4] ?? existing?.locationPolicy ?? "") as ExperienceEntry["locationPolicy"],
+              startDate: parts[5] ?? existing?.startDate ?? "",
+              endDate: endDate === "Present" ? "" : endDate,
+              current: endDate === "Present",
+              description: parts[7] ?? existing?.description ?? "",
+            })
+          }
+
+          setter({ ...current, experience: [...existingExp.values()] })
         }
-        // Without index, don't touch experience (too complex)
         break
       }
 
@@ -118,7 +150,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
       }
 
       case "awards": {
-        // Format: "Title | Issuer | Date | Description" per line
+        // Format: "Title | Issuer | Date | Description | URL" per line
         const awardLines = action.content.split("\n").filter((l) => l.trim())
         const existingAwards = new Map(
           current.awards.map((a) => [a.title.toLowerCase(), a]),
@@ -136,7 +168,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
             issuer: parts[1] ?? existing?.issuer ?? "",
             date: parts[2] ?? existing?.date ?? "",
             description: parts[3] ?? existing?.description ?? "",
-            url: existing?.url ?? "",
+            url: parts[4] ?? existing?.url ?? "",
           })
         }
 
@@ -145,7 +177,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
       }
 
       case "certificates": {
-        // Format: "Name | Issuer | Date | ExpiryDate | CredentialId" per line
+        // Format: "Name | Issuer | Date | ExpiryDate | CredentialId | URL" per line
         const certLines = action.content.split("\n").filter((l) => l.trim())
         const existingCerts = new Map(
           current.certificates.map((c) => [c.name.toLowerCase(), c]),
@@ -164,7 +196,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
             date: parts[2] ?? existing?.date ?? "",
             expiryDate: parts[3] ?? existing?.expiryDate ?? "",
             credentialId: parts[4] ?? existing?.credentialId ?? "",
-            url: existing?.url ?? "",
+            url: parts[5] ?? existing?.url ?? "",
           })
         }
 
@@ -173,7 +205,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
       }
 
       case "education": {
-        // Format: "Degree | Institution | StartDate | EndDate" per line
+        // Format: "Degree | Institution | StartDate | EndDate | GPA | Category" per line
         const eduLines = action.content.split("\n").filter((l) => l.trim())
         const existingEdu = new Map(
           current.education.map((e) => [
@@ -192,7 +224,7 @@ export function CVAssistant({ data, onApply }: CVAssistantProps) {
           const endDate = parts[3] ?? existing?.endDate ?? ""
           existingEdu.set(key, {
             id: existing?.id ?? crypto.randomUUID(),
-            category: existing?.category ?? "",
+            category: (parts[5] ?? existing?.category ?? "") as import("@/components/cv-form").EducationCategory,
             degree,
             institution,
             gpa: parts[4] ?? existing?.gpa ?? "",

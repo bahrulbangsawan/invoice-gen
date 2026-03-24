@@ -46,7 +46,7 @@ function serializeCV(data: CVData): string {
     const entries = data.experience
       .map(
         (e, i) =>
-          `[Experience #${i}] ${e.title} at ${e.company} (${e.startDate}–${e.current ? "Present" : e.endDate})${e.workType ? ` [${e.workType}]` : ""}${e.locationPolicy ? ` [${e.locationPolicy}]` : ""}: ${e.description}`,
+          `[Experience #${i}] ${e.title} at ${e.company}${e.url ? ` (${e.url})` : ""} (${e.startDate}–${e.current ? "Present" : e.endDate})${e.workType ? ` [${e.workType}]` : ""}${e.locationPolicy ? ` [${e.locationPolicy}]` : ""}: ${e.description}`,
       )
       .join("\n")
     parts.push(entries)
@@ -56,7 +56,7 @@ function serializeCV(data: CVData): string {
     const entries = data.education
       .map(
         (e) =>
-          `[Education] ${e.degree} at ${e.institution} (${e.startDate}–${e.current ? "Present" : e.endDate})${e.category ? ` [${e.category}]` : ""}`,
+          `[Education] ${e.degree} at ${e.institution} (${e.startDate}–${e.current ? "Present" : e.endDate})${e.category ? ` [${e.category}]` : ""}${e.gpa ? ` GPA: ${e.gpa}` : ""}`,
       )
       .join("\n")
     parts.push(entries)
@@ -71,14 +71,14 @@ function serializeCV(data: CVData): string {
 
   if (data.awards.length > 0) {
     const entries = data.awards
-      .map((a) => `[Award] ${a.title} — ${a.issuer} (${a.date}): ${a.description}`)
+      .map((a) => `[Award] ${a.title} — ${a.issuer} (${a.date}): ${a.description}${a.url ? ` | ${a.url}` : ""}`)
       .join("\n")
     parts.push(entries)
   }
 
   if (data.certificates.length > 0) {
     const entries = data.certificates
-      .map((c) => `[Certificate] ${c.name} — ${c.issuer} (${[c.date, c.expiryDate].filter(Boolean).join(" – ")})`)
+      .map((c) => `[Certificate] ${c.name} — ${c.issuer} (${[c.date, c.expiryDate].filter(Boolean).join(" – ")})${c.credentialId ? ` ID: ${c.credentialId}` : ""}${c.url ? ` | ${c.url}` : ""}`)
       .join("\n")
     parts.push(entries)
   }
@@ -143,9 +143,17 @@ Valid sections: summary, experience, education, skills, awards, certificates, la
 
 SECTION FORMATS (use | as separator, one entry per line):
 
-Experience (use index for specific entry):
+Experience (use index for specific entry's description):
 <apply section="experience" index="0">bullet1
 bullet2</apply>
+
+Experience (full entries without index — Company | URL | Title | WorkType | LocationPolicy | StartDate | EndDate | Description):
+<apply section="experience">
+Acme Corp | https://acme.com | Software Engineer | full-time | remote | 2020-01 | Present | Led frontend architecture
+Startup Inc | | Junior Dev | contract | on-site | 2018-06 | 2019-12 | Built REST APIs
+</apply>
+WorkType values: full-time, part-time, contract, freelance, internship, apprenticeship
+LocationPolicy values: on-site, remote, work-from-anywhere, hybrid
 
 Skills (CategoryName: items):
 <apply section="skills">
@@ -159,20 +167,21 @@ English: Professional
 Indonesian: Native
 </apply>
 
-Awards (Title | Issuer | Date | Description):
+Awards (Title | Issuer | Date | Description | URL):
 <apply section="awards">
-Best Innovation | Startup Weekend | 2021-11 | Won first place for building an AI platform
+Best Innovation | Startup Weekend | 2021-11 | Won first place for building an AI platform | https://example.com/award
 </apply>
 
-Certificates (Name | Issuer | Date | ExpiryDate | CredentialId):
+Certificates (Name | Issuer | Date | ExpiryDate | CredentialId | URL):
 <apply section="certificates">
-AWS Solutions Architect | Amazon Web Services | 2023-04 | 2026-04 | AWS-SAA-2023
+AWS Solutions Architect | Amazon Web Services | 2023-04 | 2026-04 | AWS-SAA-2023 | https://aws.amazon.com/verify
 </apply>
 
-Education (Degree | Institution | StartDate | EndDate):
+Education (Degree | Institution | StartDate | EndDate | GPA | Category):
 <apply section="education">
-B.S. Computer Science | MIT | 2013-09 | 2017-06
+B.S. Computer Science | MIT | 2013-09 | 2017-06 | 3.8 | university
 </apply>
+Category values: university, college, school, polytechnic, academy, language-center, online-platform, professional-association
 
 Projects (Name | URL | Description):
 <apply section="projects">
