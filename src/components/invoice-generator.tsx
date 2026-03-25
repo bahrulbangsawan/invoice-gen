@@ -181,7 +181,7 @@ export function InvoiceGenerator() {
   }
 
   const handleDownloadPDF = async () => {
-    if (typeof window === "undefined") return
+    if (import.meta.env.SSR) return
 
     setGenerating(true)
     try {
