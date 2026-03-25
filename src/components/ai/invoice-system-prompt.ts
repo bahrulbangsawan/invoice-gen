@@ -7,6 +7,7 @@ const INVOICE_SECTION_KEYS = [
   "bill-to",
   "items",
   "adjustments",
+  "custom-fields",
   "notes",
 ] as const
 
@@ -18,6 +19,7 @@ export const INVOICE_SECTIONS: { key: InvoiceSectionKey; label: string }[] = [
   { key: "bill-to", label: "Bill To" },
   { key: "items", label: "Line Items" },
   { key: "adjustments", label: "Adjustments" },
+  { key: "custom-fields", label: "Custom Fields" },
   { key: "notes", label: "Notes" },
 ]
 
@@ -25,20 +27,20 @@ function serializeInvoice(data: InvoiceData): string {
   const parts: string[] = []
 
   parts.push(
-    `[Invoice Details] Number: ${data.invoiceNumber} | Issued: ${data.dateOfIssue} | Due: ${data.dateDue} | Currency: ${data.currency}`,
+    `[Invoice Details] Number: ${data.invoiceNumber} | Issued: ${data.dateOfIssue} | Due: ${data.dateDue} | Currency: ${data.currency} | TaxRate: ${data.taxRate}%`,
   )
 
   const f = data.from
   if (f.companyName || f.email) {
     parts.push(
-      `[From] ${f.companyName} | ${f.address} | ${f.city} | ${f.state} | ${f.postalCode} | ${f.country} | ${f.email}`,
+      `[From] ${f.companyName} | ${f.address} | ${f.city} | ${f.kecamatan} | ${f.state} | ${f.postalCode} | ${f.country} | ${f.email}`,
     )
   }
 
   const b = data.billTo
   if (b.name || b.email) {
     parts.push(
-      `[Bill To] ${b.name} | ${b.address} | ${b.city} | ${b.stateRegion} | ${b.postalCode} | ${b.country} | ${b.email}`,
+      `[Bill To] ${b.name} | ${b.address} | ${b.city} | ${b.kecamatan} | ${b.stateRegion} | ${b.postalCode} | ${b.country} | ${b.email}`,
     )
   }
 
@@ -78,6 +80,13 @@ function serializeInvoice(data: InvoiceData): string {
     `[Totals] Subtotal: ${formatCurrency(subtotal, data.currency)} | Tax (${data.taxRate}%): ${formatCurrency(tax, data.currency)} | Total: ${formatCurrency(total, data.currency)}`,
   )
 
+  if (data.customFields.length > 0) {
+    const cfEntries = data.customFields
+      .map((cf) => `  ${cf.label}: ${cf.value}`)
+      .join("\n")
+    parts.push(`[Custom Fields]\n${cfEntries}`)
+  }
+
   if (data.notes) {
     parts.push(`[Notes] ${data.notes}`)
   }
@@ -113,7 +122,7 @@ QUESTIONS about invoice: answer in 1-2 sentences.
 OFF-TOPIC: reply "I can only help with invoice content."
 NEVER repeat/list/echo invoice data. No explanations.
 
-Valid sections: invoice-details, from, bill-to, items, adjustments, notes
+Valid sections: invoice-details, from, bill-to, items, adjustments, custom-fields, notes
 
 MULTI-SECTION EDITING:
 When the user asks to edit or fill multiple sections at once, you MUST include a separate
@@ -126,20 +135,21 @@ Web Development | Mar 1–31, 2026 | 1 | 5000
 
 SECTION FORMATS (use | as separator):
 
-Invoice Details (InvoiceNumber | DateOfIssue | DateDue | Currency):
+Invoice Details (InvoiceNumber | DateOfIssue | DateDue | Currency | TaxRate):
 <apply section="invoice-details">
-IN-00000001 | 2026-03-01 | 2026-04-01 | USD
+IN-00000001 | 2026-03-01 | 2026-04-01 | USD | 11
 </apply>
-Leave a field empty to keep its current value (e.g., "IN-00000001 | | | " only changes the number).
+Leave a field empty to keep its current value (e.g., "IN-00000001 | | | | " only changes the number).
 
-From (CompanyName | Address | City | State | PostalCode | Country | Email):
+From (CompanyName | Address | City | Kecamatan | State | PostalCode | Country | Email):
 <apply section="from">
-Acme Corp | 123 Main Street | San Francisco | California | 94107 | United States | billing@acme.com
+Acme Corp | 123 Main Street | San Francisco | | California | 94107 | United States | billing@acme.com
 </apply>
+Kecamatan is an Indonesia-specific subdistrict. Leave empty for non-Indonesian addresses.
 
-Bill To (Name | Address | City | StateRegion | PostalCode | Country | Email):
+Bill To (Name | Address | City | Kecamatan | StateRegion | PostalCode | Country | Email):
 <apply section="bill-to">
-Client Inc | 456 Client Avenue | Jakarta | DKI Jakarta | 12930 | Indonesia | client@example.com
+Client Inc | 456 Client Avenue | Jakarta | Menteng | DKI Jakarta | 12930 | Indonesia | client@example.com
 </apply>
 
 Items (one line per item — Description | Period | Qty | UnitPrice):
@@ -159,6 +169,12 @@ Adjustments (one line per adjustment — Label | Type(add/deduct) | Mode(percent
 Service Charge | add | percentage | 10
 Discount | deduct | fixed | 50000
 Down Payment | deduct | fixed | 1000000
+</apply>
+
+Custom Fields (one line per field — Label | Value):
+<apply section="custom-fields">
+PO Number | PO-2026-001
+Project Code | PROJ-42
 </apply>
 
 Notes (plain text):

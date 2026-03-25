@@ -4,6 +4,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { MonthPicker } from "@/components/form/month-picker"
 
+function formatWithSeparator(val: string): string {
+  const num = val.replace(/[^\d]/g, "")
+  if (!num) return ""
+  return Number(num).toLocaleString("id-ID")
+}
+
+function parseFromSeparator(val: string): string {
+  const num = val.replace(/[^\d]/g, "")
+  return num || "0"
+}
+
 interface FormFieldProps {
   label: string
   value: string
@@ -18,6 +29,7 @@ interface FormFieldProps {
   step?: string | number
   min?: string | number
   max?: string | number
+  numeric?: boolean
 }
 
 export function FormField({
@@ -34,6 +46,7 @@ export function FormField({
   step,
   min,
   max,
+  numeric,
 }: FormFieldProps) {
   return (
     <div className="space-y-1.5">
@@ -51,6 +64,17 @@ export function FormField({
         <MonthPicker
           value={value}
           onChange={onChange}
+          disabled={disabled}
+        />
+      ) : numeric ? (
+        <Input
+          type="text"
+          inputMode="numeric"
+          placeholder={placeholder}
+          value={formatWithSeparator(value)}
+          aria-invalid={!!error}
+          onChange={(e) => onChange(parseFromSeparator(e.target.value))}
+          onBlur={onBlur}
           disabled={disabled}
         />
       ) : (

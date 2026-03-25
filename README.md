@@ -1,14 +1,16 @@
-# CV Bahrul
+# Invoice Bahrul
 
-A CV/Resume builder web application with real-time preview and PDF export.
+An invoice generator web application with real-time preview, PDF export, and AI assistant.
 
 ## Features
 
-- Interactive form with sections for personal info, summary, experience, education, skills, awards, certificates, and languages
-- Real-time CV preview as you type
-- PDF download with multi-page support
+- Interactive invoice form with client/company details, line items, and tax calculation
+- Real-time invoice preview as you type
+- PDF download with professional formatting
+- AI assistant for invoice generation
+- Indonesian address cascade (province/city/district)
+- Bilingual support (English/Indonesian)
 - Pre-fill with sample data
-- Responsive split-pane layout (form + preview)
 
 ## Tech Stack
 
@@ -18,6 +20,7 @@ A CV/Resume builder web application with real-time preview and PDF export.
 - [Tailwind CSS v4](https://tailwindcss.com) — Styling
 - [TypeScript](https://www.typescriptlang.org) — Type safety
 - [Bun](https://bun.sh) — Runtime and package manager
+- [Cloudflare Workers](https://workers.cloudflare.com) — Deployment
 
 ## Getting Started
 
@@ -28,6 +31,8 @@ bun run dev
 
 The app runs at `http://localhost:5001`.
 
-## PDF Export
+## Deploy
 
-Uses `html2canvas` + `jsPDF` for client-side PDF generation with A4 formatting and automatic page breaks.
+```bash
+bun run deploy
+```

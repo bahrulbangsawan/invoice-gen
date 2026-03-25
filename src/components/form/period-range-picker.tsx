@@ -100,7 +100,7 @@ export function PeriodRangePicker({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "h-8 w-full justify-start text-left font-normal",
+              "h-7 w-full justify-start border-input bg-input/20 px-2 text-left text-sm font-normal md:text-xs/relaxed dark:bg-input/30",
               !value && "text-muted-foreground",
             )}
           >

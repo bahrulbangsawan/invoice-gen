@@ -213,11 +213,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   totalLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#444444",
   },
   totalValue: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#1a1a1a",
     textAlign: "right",
   },
@@ -230,12 +230,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   totalDueLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
     color: "#1a1a1a",
   },
   totalDueValue: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
     color: "#1a1a1a",
     textAlign: "right",

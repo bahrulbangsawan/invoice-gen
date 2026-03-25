@@ -4,7 +4,7 @@ import {
   useLocalRuntime,
   type SuggestionAdapter,
 } from "@assistant-ui/react"
-import type { InvoiceData, InvoiceSubItem, InvoiceAdjustment } from "@/components/invoice-form"
+import type { InvoiceData, InvoiceSubItem, InvoiceAdjustment, InvoiceCustomField } from "@/components/invoice-form"
 import { AssistantModal } from "@/components/assistant-ui/assistant-modal"
 import { InvoiceDataContext } from "./invoice-data-context"
 import { ApiKeyDialog } from "./api-key-dialog"
@@ -29,17 +29,21 @@ function applyOneAction(data: InvoiceData, action: ApplyAction): InvoiceData {
   switch (action.section) {
     case "invoice-details": {
       const parts = action.content.split("|").map((s) => s.trim())
-      const updates: Partial<Pick<InvoiceData, "invoiceNumber" | "dateOfIssue" | "dateDue" | "currency">> = {}
+      const updates: Partial<Pick<InvoiceData, "invoiceNumber" | "dateOfIssue" | "dateDue" | "currency" | "taxRate">> = {}
       if (parts[0]) updates.invoiceNumber = parts[0]
       if (parts[1]) updates.dateOfIssue = parts[1]
       if (parts[2]) updates.dateDue = parts[2]
       if (parts[3]) updates.currency = parts[3]
+      if (parts[4]) {
+        const rate = Number.parseFloat(parts[4])
+        if (!Number.isNaN(rate)) updates.taxRate = rate
+      }
       return { ...data, ...updates }
     }
 
     case "from": {
       const parts = action.content.split("|").map((s) => s.trim())
-      const fields = ["companyName", "address", "city", "state", "postalCode", "country", "email"] as const
+      const fields = ["companyName", "address", "city", "kecamatan", "state", "postalCode", "country", "email"] as const
       const updates: Partial<Record<(typeof fields)[number], string>> = {}
       for (let i = 0; i < fields.length; i++) {
         const val = parts[i]
@@ -50,7 +54,7 @@ function applyOneAction(data: InvoiceData, action: ApplyAction): InvoiceData {
 
     case "bill-to": {
       const parts = action.content.split("|").map((s) => s.trim())
-      const fields = ["name", "address", "city", "stateRegion", "postalCode", "country", "email"] as const
+      const fields = ["name", "address", "city", "kecamatan", "stateRegion", "postalCode", "country", "email"] as const
       const updates: Partial<Record<(typeof fields)[number], string>> = {}
       for (let i = 0; i < fields.length; i++) {
         const val = parts[i]
@@ -134,6 +138,19 @@ function applyOneAction(data: InvoiceData, action: ApplyAction): InvoiceData {
         }
       })
       return { ...data, adjustments: parsed }
+    }
+
+    case "custom-fields": {
+      const rawLines = action.content.split("\n").filter((l) => l.trim())
+      const parsed: InvoiceCustomField[] = rawLines.map((line) => {
+        const parts = line.split("|").map((s) => s.trim())
+        return {
+          id: crypto.randomUUID(),
+          label: parts[0] ?? "",
+          value: parts[1] ?? "",
+        }
+      })
+      return { ...data, customFields: parsed }
     }
 
     case "notes":

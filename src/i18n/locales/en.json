@@ -10,7 +10,8 @@
     "download": "Download",
     "generating": "Generating...",
     "downloadPdf": "Download as PDF",
-    "downloadJson": "Download as JSON"
+    "downloadJson": "Download as JSON",
+    "clearAll": "Clear All"
   },
   "form": {
     "invoiceDetails": "Invoice Details",

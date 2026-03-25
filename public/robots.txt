@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://cv.bahrul.me/sitemap.xml
+Sitemap: https://invoice.bahrul.me/sitemap.xml

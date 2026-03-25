@@ -139,13 +139,6 @@ export function formatCurrency(amount: number, currency: string): string {
   }).format(amount)
 }
 
-export function generateInvoiceNumber(): string {
-  if (typeof window === "undefined") return "IN-00000001"
-  const counter = Number(localStorage.getItem("invoice-counter") ?? "0") + 1
-  localStorage.setItem("invoice-counter", String(counter))
-  return `IN-${String(counter).padStart(8, "0")}`
-}
-
 // ── Calculations ───────────────────────────────────────────
 
 export function calcSubtotal(items: InvoiceLineItem[]): number {
@@ -410,7 +403,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         <h2 className="flex items-center gap-2 text-sm font-medium">
           <FileText className="size-4 text-muted-foreground" /> {t("form.invoiceDetails")}
         </h2>
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr_1fr_auto] gap-3">
+        <div className="mt-3 grid grid-cols-[1fr_auto_1fr_1fr_auto] items-end gap-3">
           <FormField
             label={t("form.invoiceNumber")}
             value={data.invoiceNumber}
@@ -655,25 +648,22 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               onChange={(v) => updateItem(item.id, "description", v)}
               placeholder={t("placeholders.description")}
             />
-            <div className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-3">
+            <div className="grid grid-cols-[1fr_3.5rem_auto_auto] items-end gap-3">
               <PeriodRangePicker
                 value={item.period}
                 onChange={(v) => updateItem(item.id, "period", v)}
               />
               <FormField
                 label={t("form.qty")}
-                type="number"
+                numeric
                 value={String(item.qty)}
                 onChange={(v) => updateItem(item.id, "qty", Number(v))}
-                min={0}
               />
               <FormField
                 label={t("form.unitPrice")}
-                type="number"
+                numeric
                 value={String(item.unitPrice)}
                 onChange={(v) => updateItem(item.id, "unitPrice", Number(v))}
-                min={0}
-                step="0.01"
               />
               <FormField
                 label={t("form.amount")}
@@ -692,7 +682,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 {item.subItems.map((sub) => (
                   <div
                     key={sub.id}
-                    className="grid grid-cols-[1fr_auto_auto_auto_auto] items-end gap-2"
+                    className="grid grid-cols-[1fr_3.5rem_auto_auto_auto] items-end gap-2"
                   >
                     <FormField
                       label={t("form.label")}
@@ -704,22 +694,19 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     />
                     <FormField
                       label={t("form.qty")}
-                      type="number"
+                      numeric
                       value={String(sub.qty)}
                       onChange={(v) =>
                         updateSubItem(item.id, sub.id, "qty", Number(v))
                       }
-                      min={0}
                     />
                     <FormField
                       label={t("form.unitPrice")}
-                      type="number"
+                      numeric
                       value={String(sub.unitPrice)}
                       onChange={(v) =>
                         updateSubItem(item.id, sub.id, "unitPrice", Number(v))
                       }
-                      min={0}
-                      step="0.01"
                     />
                     <FormField
                       label={t("form.amount")}

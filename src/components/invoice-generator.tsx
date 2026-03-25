@@ -1,6 +1,6 @@
-import { lazy, Suspense, useRef, useState } from "react"
-import { ChevronDown, Download, FileJson, FileText, Loader2, Upload, Receipt } from "lucide-react"
-import { InvoiceForm, type InvoiceData, generateInvoiceNumber } from "@/components/invoice-form"
+import { lazy, Suspense, useCallback, useRef, useState } from "react"
+import { ChevronDown, Download, FileJson, FileText, Loader2, Trash2, Upload, Receipt } from "lucide-react"
+import { InvoiceForm, type InvoiceData } from "@/components/invoice-form"
 import { InvoicePreview } from "@/components/invoice-preview"
 import { useTranslation } from "@/i18n"
 import { LanguageSwitcher } from "@/i18n/components/language-switcher"
@@ -16,6 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
+const STORAGE_KEY = "invoice-data"
 
 const initialData: InvoiceData = {
   invoiceNumber: "",
@@ -51,13 +53,32 @@ const initialData: InvoiceData = {
   taxRate: 0,
 }
 
+function loadSavedData(): InvoiceData {
+  if (typeof window === "undefined") return initialData
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) return { ...initialData, ...JSON.parse(saved) }
+  } catch { /* ignore corrupt data */ }
+  return initialData
+}
+
+function saveData(data: InvoiceData) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch { /* storage full / unavailable */ }
+}
+
 export function InvoiceGenerator() {
   const { t, locale } = useTranslation()
-  const [data, setData] = useState<InvoiceData>(() => ({
-    ...initialData,
-    invoiceNumber: typeof window !== "undefined" ? generateInvoiceNumber() : "IN-00000001",
-    currency: "IDR",
-  }))
+  const [data, setDataRaw] = useState<InvoiceData>(loadSavedData)
+  const setData = useCallback((update: InvoiceData | ((prev: InvoiceData) => InvoiceData)) => {
+    setDataRaw((prev) => {
+      const next = typeof update === "function" ? update(prev) : update
+      saveData(next)
+      return next
+    })
+  }, [])
   const [generating, setGenerating] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isEmpty = !data.from.companyName.trim() && data.items.length === 0
@@ -149,6 +170,19 @@ export function InvoiceGenerator() {
             >
               <Receipt data-icon="inline-start" />
               <span className="hidden sm:inline">{t("toolbar.loadSample")}</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => {
+                localStorage.removeItem(STORAGE_KEY)
+                setDataRaw(initialData)
+              }}
+              disabled={isEmpty}
+            >
+              <Trash2 />
+              <span className="sr-only">{t("toolbar.clearAll")}</span>
             </Button>
           </div>
         </div>

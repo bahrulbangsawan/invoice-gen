@@ -10,7 +10,8 @@
     "download": "Unduh",
     "generating": "Membuat...",
     "downloadPdf": "Unduh sebagai PDF",
-    "downloadJson": "Unduh sebagai JSON"
+    "downloadJson": "Unduh sebagai JSON",
+    "clearAll": "Hapus Semua"
   },
   "form": {
     "invoiceDetails": "Detail Faktur",

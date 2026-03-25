@@ -66,7 +66,7 @@ export function getInvoiceSuggestions(data: InvoiceData): InvoiceSuggestion[] {
   return suggestions
 }
 
-const MENTION_REGEX = /@(all|invoice-details|from|bill-to|items|notes)\b/g
+const MENTION_REGEX = /@(all|invoice-details|from|bill-to|items|adjustments|custom-fields|notes)\b/g
 
 export function extractMentions(text: string): InvoiceSectionKey[] {
   const mentions: InvoiceSectionKey[] = []
