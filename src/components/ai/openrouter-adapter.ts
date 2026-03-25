@@ -1,12 +1,12 @@
 import type { ChatModelAdapter } from "@assistant-ui/react"
-import type { CVSectionKey } from "./cv-system-prompt"
-import { extractMentions } from "./cv-suggestions"
+import type { InvoiceSectionKey } from "./invoice-system-prompt"
+import { extractMentions } from "./invoice-suggestions"
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 const DEFAULT_MODEL = "deepseek/deepseek-v3.2"
 
 export interface ApplyAction {
-  section: CVSectionKey
+  section: InvoiceSectionKey
   content: string
   index?: number
 }
@@ -15,7 +15,7 @@ interface OpenRouterAdapterOptions {
   apiKey: string
   model?: string
   systemPrompt: string
-  buildSystemPromptWithMention: (sections?: CVSectionKey[]) => string
+  buildSystemPromptWithMention: (sections?: InvoiceSectionKey[]) => string
   onApplyAction?: (actions: ApplyAction[]) => void
 }
 
@@ -27,7 +27,7 @@ function parseApplyTags(text: string): ApplyAction[] {
   let match = regex.exec(text)
   while (match !== null) {
     actions.push({
-      section: match[1] as CVSectionKey,
+      section: match[1] as InvoiceSectionKey,
       content: match[3].trim(),
       index: match[2] !== undefined ? Number.parseInt(match[2], 10) : undefined,
     })
@@ -61,7 +61,7 @@ export function createOpenRouterAdapter({
           .join("") ?? ""
       const mentions = extractMentions(lastUserText)
       const systemPrompt = buildSystemPromptWithMention(
-        mentions.length >= 10 ? undefined : mentions.length > 0 ? mentions : undefined,
+        mentions.length >= 5 ? undefined : mentions.length > 0 ? mentions : undefined,
       )
 
       const openRouterMessages = [
@@ -72,7 +72,6 @@ export function createOpenRouterAdapter({
             .map((p) => p.text)
             .join("")
 
-          // Include extracted PDF text from attachments
           const attachmentText =
             m.role === "user" && "attachments" in m
               ? (m.attachments ?? [])
@@ -97,7 +96,7 @@ export function createOpenRouterAdapter({
           "Content-Type": "application/json",
           "HTTP-Referer":
             typeof window !== "undefined" ? window.location.origin : "",
-          "X-Title": "CV Builder",
+          "X-Title": "Invoice Generator",
         },
         body: JSON.stringify({
           model,
@@ -146,7 +145,6 @@ export function createOpenRouterAdapter({
               const delta = parsed.choices?.[0]?.delta?.content
               if (delta) {
                 fullText += delta
-                // If an <apply tag is still open, show "Writing..." instead of raw tag content
                 const openCount = (fullText.match(/<apply\s/g) || []).length
                 const closeCount = (fullText.match(/<\/apply>/g) || []).length
                 const displayText =
@@ -168,13 +166,11 @@ export function createOpenRouterAdapter({
         reader.releaseLock()
       }
 
-      // After streaming completes, parse <apply> tags and execute them as a batch
       const actions = fullText ? parseApplyTags(fullText) : []
       if (onApplyAction && actions.length > 0) {
         onApplyAction(actions)
       }
 
-      // Final yield: "Done." if we applied changes, otherwise show clean text
       if (fullText) {
         const finalText = actions.length > 0 ? "Done." : stripApplyBlocks(fullText)
         yield {

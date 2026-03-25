@@ -1,0 +1,75 @@
+{
+  "invoiceNumber": "IN-60545932",
+  "dateOfIssue": "2026-03-23",
+  "dateDue": "2026-03-23",
+  "currency": "USD",
+  "accentColor": "#f48120",
+  "from": {
+    "companyName": "Cloudflare, Inc.",
+    "address": "101 Townsend Street",
+    "city": "San Francisco",
+    "state": "California",
+    "postalCode": "94107",
+    "country": "United States",
+    "email": "billing@cloudflare.com",
+    "logoUrl": ""
+  },
+  "billTo": {
+    "name": "Mayarosa Nur Arafah",
+    "address": "Jl. Karet Sawah No.216, RT.4/RW.4, Karet Semanggi, Kecamatan Setiabudi",
+    "city": "Kota Jakarta Selatan",
+    "stateRegion": "ID-JK",
+    "postalCode": "12930",
+    "country": "Indonesia",
+    "email": "marketing@kyzn.life"
+  },
+  "items": [
+    {
+      "id": "item-1",
+      "description": "Durable Objects SQL Storage (First 5 GB-month included)",
+      "period": "Feb 23–Mar 22, 2026",
+      "qty": 0,
+      "unitPrice": 0.20,
+      "amount": 0,
+      "subItems": []
+    },
+    {
+      "id": "item-2",
+      "description": "Durable Objects Storage Rows Written (First 50M included)",
+      "period": "Feb 23–Mar 22, 2026",
+      "qty": 0,
+      "unitPrice": 1.00,
+      "amount": 0,
+      "subItems": []
+    },
+    {
+      "id": "item-3",
+      "description": "Browser Rendering - Average Concurrent Browsers (First 10 browsers included)",
+      "period": "Feb 23–Mar 22, 2026",
+      "qty": 0,
+      "unitPrice": 0,
+      "amount": 0,
+      "subItems": [
+        {
+          "id": "sub-3-1",
+          "label": "First 10",
+          "qty": 0,
+          "unitPrice": 0,
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "id": "item-4",
+      "description": "SSL For SAAS Basic",
+      "period": "Mar 23–Apr 22, 2026",
+      "qty": 1,
+      "unitPrice": 0,
+      "amount": 0,
+      "subItems": []
+    }
+  ],
+  "adjustments": [],
+  "notes": "If this request is concerning an Enterprise invoice reach out to ar@cloudflare.com. For all other billing concerns, submit your request here: https://dash.cloudflare.com/?to=/:account/support",
+  "taxRate": 0
+}

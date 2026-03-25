@@ -23,6 +23,7 @@ interface SectionListProps<T extends { id: string }> {
   summary: (entry: T, index: number) => string
   hasError?: (entry: T) => boolean
   renderContent: (entry: T, index: number) => ReactNode
+  titleIcon?: ReactNode
   titleExtra?: ReactNode
   triggerExtra?: (entry: T, index: number) => ReactNode
 }
@@ -55,6 +56,7 @@ export function SectionList<T extends { id: string }>({
   summary,
   hasError,
   renderContent,
+  titleIcon,
   titleExtra,
   triggerExtra,
 }: SectionListProps<T>) {
@@ -76,7 +78,8 @@ export function SectionList<T extends { id: string }>({
 
   return (
     <section>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        {titleIcon}
         <input
           className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
           value={title}

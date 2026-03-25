@@ -50,7 +50,7 @@ export class PdfAttachmentAdapter implements AttachmentAdapter {
       contentType: "application/pdf",
       file,
       content: text
-        ? [{ type: "text" as const, text: `--- Uploaded CV (PDF) ---\n${text}\n--- End of uploaded CV ---` }]
+        ? [{ type: "text" as const, text: `--- Uploaded Invoice (PDF) ---\n${text}\n--- End of uploaded Invoice ---` }]
         : [],
       status: { type: "requires-action", reason: "composer-send" },
     }

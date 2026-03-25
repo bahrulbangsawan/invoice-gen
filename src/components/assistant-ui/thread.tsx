@@ -6,8 +6,8 @@ import {
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
-import { useCVData } from "@/components/ai/cv-data-context";
-import type { CVData } from "@/components/cv-form";
+import { useInvoiceData } from "@/components/ai/invoice-data-context";
+import type { InvoiceData } from "@/components/invoice-form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -105,10 +105,10 @@ const ThreadWelcome: FC = () => {
         </div>
         <div>
           <h1 className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-base tracking-tight duration-200">
-            CV Assistant
+            Invoice Assistant
           </h1>
           <p className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xs delay-75 duration-200">
-            Improve, generate, or tailor your CV content
+            Create, edit, or generate invoice content
           </p>
         </div>
       </div>
@@ -120,46 +120,41 @@ const ThreadWelcome: FC = () => {
 const WELCOME_SUGGESTIONS = [
   {
     icon: TextIcon,
-    title: "Write a @summary",
-    description: "Generate a professional summary",
+    title: "Create @items",
+    description: "Generate line items from a description",
     prompt:
-      "Write a professional @summary based on my experience and skills. Keep it 3-4 sentences.",
-    isDisabled: (d: CVData) =>
-      d.experience.length === 0 && d.skills.length === 0,
+      "Add @items for 3 hours of consulting at $150/hr",
+    isDisabled: (_d: InvoiceData) => false,
   },
   {
     icon: BriefcaseBusinessIcon,
-    title: "Strengthen @experience",
-    description: "Add metrics and action verbs",
+    title: "Fill @all from description",
+    description: "Create a complete invoice",
     prompt:
-      "Review my @experience bullet points and rewrite them using strong action verbs and quantifiable achievements.",
-    isDisabled: (d: CVData) => d.experience.length === 0,
+      "Create an invoice @all for 5 hours of web development at $100/hr billed to John Smith at john@example.com",
+    isDisabled: (_d: InvoiceData) => false,
   },
   {
     icon: LightbulbIcon,
-    title: "Optimize @skills",
-    description: "Suggest missing skills for my role",
+    title: "Update @from details",
+    description: "Set your company information",
     prompt:
-      "Review my @skills and suggest any important skills I might be missing for my role.",
-    isDisabled: (d: CVData) => d.skills.length === 0,
+      "Set @from to my company: ",
+    isDisabled: (_d: InvoiceData) => false,
   },
   {
     icon: CrosshairIcon,
-    title: "Tailor for a job posting",
-    description: "Paste a job description to optimize",
+    title: "Review totals",
+    description: "Check invoice calculations",
     prompt:
-      "I want to tailor my CV for a specific role. Here's the job description: ",
-    isDisabled: (d: CVData) =>
-      !d.summary &&
-      d.experience.length === 0 &&
-      d.skills.length === 0 &&
-      d.education.length === 0,
+      "Review my @items and confirm the totals are correct.",
+    isDisabled: (d: InvoiceData) => d.items.length === 0,
   },
 ];
 
 const ThreadSuggestions: FC = () => {
   const aui = useAui();
-  const cvData = useCVData();
+  const cvData = useInvoiceData();
 
   function handleSuggestion(prompt: string) {
     const send = !prompt.endsWith(": ") && !prompt.endsWith(" ");
@@ -208,21 +203,17 @@ const ThreadSuggestions: FC = () => {
   );
 };
 
-const CV_MENTION_ITEMS = [
-  { id: "all", type: "cv-section", label: "All Sections" },
-  { id: "summary", type: "cv-section", label: "Summary" },
-  { id: "experience", type: "cv-section", label: "Experience" },
-  { id: "education", type: "cv-section", label: "Education" },
-  { id: "skills", type: "cv-section", label: "Skills" },
-  { id: "awards", type: "cv-section", label: "Awards" },
-  { id: "certificates", type: "cv-section", label: "Certificates" },
-  { id: "languages", type: "cv-section", label: "Languages" },
-  { id: "personal-info", type: "cv-section", label: "Personal Info" },
-  { id: "projects", type: "cv-section", label: "Projects" },
-  { id: "volunteer", type: "cv-section", label: "Volunteer" },
+const INVOICE_MENTION_ITEMS = [
+  { id: "all", type: "invoice-section", label: "All Sections" },
+  { id: "invoice-details", type: "invoice-section", label: "Invoice Details" },
+  { id: "from", type: "invoice-section", label: "From" },
+  { id: "bill-to", type: "invoice-section", label: "Bill To" },
+  { id: "items", type: "invoice-section", label: "Line Items" },
+  { id: "adjustments", type: "invoice-section", label: "Adjustments" },
+  { id: "notes", type: "invoice-section", label: "Notes" },
 ];
 
-const cvMentionFormatter = {
+const invoiceMentionFormatter = {
   serialize(item: { id: string; label: string }) {
     return `@${item.id}`;
   },
@@ -236,7 +227,7 @@ const cvMentionFormatter = {
           readonly id: string;
         }
     > = [];
-    const mentionIds = CV_MENTION_ITEMS.map((i) => i.id).join("|");
+    const mentionIds = INVOICE_MENTION_ITEMS.map((i) => i.id).join("|");
     const regex = new RegExp(`@(${mentionIds})\\b`, "g");
     let lastIndex = 0;
     let m = regex.exec(text);
@@ -245,10 +236,10 @@ const cvMentionFormatter = {
         segments.push({ kind: "text", text: text.slice(lastIndex, m.index) });
       }
       const id = m[1];
-      const item = CV_MENTION_ITEMS.find((i) => i.id === id);
+      const item = INVOICE_MENTION_ITEMS.find((i) => i.id === id);
       segments.push({
         kind: "mention",
-        type: "cv-section",
+        type: "invoice-section",
         label: item?.label ?? id,
         id,
       });
@@ -262,21 +253,21 @@ const cvMentionFormatter = {
   },
 };
 
-const cvMentionAdapter = {
+const invoiceMentionAdapter = {
   categories() {
     // Each section is its own "category" so they show immediately on @
-    return CV_MENTION_ITEMS.map((item) => ({
+    return INVOICE_MENTION_ITEMS.map((item) => ({
       id: item.id,
       label: item.label,
     }));
   },
   categoryItems(categoryId: string) {
-    return CV_MENTION_ITEMS.filter((item) => item.id === categoryId);
+    return INVOICE_MENTION_ITEMS.filter((item) => item.id === categoryId);
   },
   search(query: string) {
-    if (!query) return CV_MENTION_ITEMS;
+    if (!query) return INVOICE_MENTION_ITEMS;
     const q = query.toLowerCase();
-    return CV_MENTION_ITEMS.filter(
+    return INVOICE_MENTION_ITEMS.filter(
       (item) =>
         item.label.toLowerCase().includes(q) ||
         item.id.toLowerCase().includes(q),
@@ -315,7 +306,7 @@ const Composer: FC = () => {
           className="flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-background p-(--composer-padding) transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50"
         >
           <ComposerAttachments />
-          <ComposerPrimitive.Unstable_MentionRoot adapter={cvMentionAdapter} formatter={cvMentionFormatter}>
+          <ComposerPrimitive.Unstable_MentionRoot adapter={invoiceMentionAdapter} formatter={invoiceMentionFormatter}>
             <MentionComposerInput />
             <ComposerPrimitive.Unstable_MentionPopover className="z-50 w-44 overflow-hidden rounded-md border bg-popover p-1 shadow-md">
               <ComposerPrimitive.Unstable_MentionCategories>
@@ -355,7 +346,7 @@ const Composer: FC = () => {
 };
 
 const MENTION_PATTERN =
-  /@(all|summary|experience|education|skills|awards|certificates|languages|personal-info|projects|volunteer)\b/;
+  /@(all|invoice-details|from|bill-to|items|notes)\b/;
 
 const ComposerAction: FC = () => {
   const hasMention = useAuiState((s) => MENTION_PATTERN.test(s.composer.text));

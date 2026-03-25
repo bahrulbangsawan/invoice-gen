@@ -14,48 +14,48 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Bahrul Bangsawan — CV Builder & Resume Generator" },
+      { title: "Invoice Generator — Bahrul Bangsawan" },
       {
         name: "description",
         content:
-          "Create, preview, and download professional resumes as PDF. Free online CV builder by Bahrul Bangsawan with real-time preview and ATS-friendly formatting.",
+          "Create, preview, and download professional invoices as PDF. Free online invoice generator by Bahrul Bangsawan with real-time preview and AI assistant.",
       },
       // Open Graph
       {
         property: "og:title",
-        content: "Bahrul Bangsawan — CV Builder & Resume Generator",
+        content: "Invoice Generator — Bahrul Bangsawan",
       },
       {
         property: "og:description",
         content:
-          "Create, preview, and download professional resumes as PDF. Free online CV builder with real-time preview.",
+          "Create, preview, and download professional invoices as PDF. Free online invoice generator with real-time preview.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cv.bahrul.me" },
+      { property: "og:url", content: "https://invoice.bahrul.me" },
       {
         property: "og:image",
-        content: "https://cv.bahrul.me/og-image.png",
+        content: "https://invoice.bahrul.me/og-image.png",
       },
       { name: "theme-color", content: "#ffffff" },
       // Twitter Card
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "Bahrul Bangsawan — CV Builder & Resume Generator",
+        content: "Invoice Generator — Bahrul Bangsawan",
       },
       {
         name: "twitter:description",
         content:
-          "Create, preview, and download professional resumes as PDF. Free online CV builder with real-time preview.",
+          "Create, preview, and download professional invoices as PDF. Free online invoice generator with real-time preview.",
       },
       {
         name: "twitter:image",
-        content: "https://cv.bahrul.me/og-image.png",
+        content: "https://invoice.bahrul.me/og-image.png",
       },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "canonical", href: "https://cv.bahrul.me" },
+      { rel: "canonical", href: "https://invoice.bahrul.me" },
       {
         rel: "icon",
         type: "image/x-icon",
@@ -88,10 +88,10 @@ export const Route = createRootRoute({
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Bahrul Bangsawan — CV Builder",
+  name: "Invoice Generator — Bahrul Bangsawan",
   description:
-    "Create, preview, and download professional resumes as PDF. Free online CV builder with real-time preview and ATS-friendly formatting.",
-  url: "https://cv.bahrul.me",
+    "Create, preview, and download professional invoices as PDF. Free online invoice generator with real-time preview and AI assistant.",
+  url: "https://invoice.bahrul.me",
   applicationCategory: "BusinessApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
