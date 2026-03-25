@@ -15,8 +15,8 @@ interface OpenRouterAdapterOptions {
   apiKey: string
   model?: string
   systemPrompt: string
-  buildSystemPromptWithMention: (section?: CVSectionKey) => string
-  onApplyAction?: (action: ApplyAction) => void
+  buildSystemPromptWithMention: (sections?: CVSectionKey[]) => string
+  onApplyAction?: (actions: ApplyAction[]) => void
 }
 
 /** Parse <apply section="..."> tags from AI response */
@@ -61,18 +61,33 @@ export function createOpenRouterAdapter({
           .join("") ?? ""
       const mentions = extractMentions(lastUserText)
       const systemPrompt = buildSystemPromptWithMention(
-        mentions.length >= 10 ? undefined : mentions[0],
+        mentions.length >= 10 ? undefined : mentions.length > 0 ? mentions : undefined,
       )
 
       const openRouterMessages = [
         { role: "system" as const, content: systemPrompt },
-        ...messages.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content
+        ...messages.map((m) => {
+          const textContent = m.content
             .filter((p) => p.type === "text")
             .map((p) => p.text)
-            .join(""),
-        })),
+            .join("")
+
+          // Include extracted PDF text from attachments
+          const attachmentText =
+            m.role === "user" && "attachments" in m
+              ? (m.attachments ?? [])
+                  .flatMap((a) => a.content?.filter((c) => c.type === "text") ?? [])
+                  .map((c) => c.text)
+                  .join("\n")
+              : ""
+
+          return {
+            role: m.role as "user" | "assistant",
+            content: attachmentText
+              ? `${attachmentText}\n\n${textContent}`
+              : textContent,
+          }
+        }),
       ]
 
       const response = await fetch(OPENROUTER_API_URL, {
@@ -131,11 +146,11 @@ export function createOpenRouterAdapter({
               const delta = parsed.choices?.[0]?.delta?.content
               if (delta) {
                 fullText += delta
-                // If an <apply tag has started, show "Writing..." instead of raw tag content
-                const hasOpenApply = fullText.includes("<apply")
-                const hasCloseApply = fullText.includes("</apply>")
+                // If an <apply tag is still open, show "Writing..." instead of raw tag content
+                const openCount = (fullText.match(/<apply\s/g) || []).length
+                const closeCount = (fullText.match(/<\/apply>/g) || []).length
                 const displayText =
-                  hasOpenApply && !hasCloseApply
+                  openCount > closeCount
                     ? "Writing..."
                     : stripApplyBlocks(fullText)
                 yield {
@@ -153,12 +168,10 @@ export function createOpenRouterAdapter({
         reader.releaseLock()
       }
 
-      // After streaming completes, parse <apply> tags and execute them
+      // After streaming completes, parse <apply> tags and execute them as a batch
       const actions = fullText ? parseApplyTags(fullText) : []
-      if (onApplyAction) {
-        for (const action of actions) {
-          onApplyAction(action)
-        }
+      if (onApplyAction && actions.length > 0) {
+        onApplyAction(actions)
       }
 
       // Final yield: "Done." if we applied changes, otherwise show clean text

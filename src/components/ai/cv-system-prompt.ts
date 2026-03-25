@@ -112,12 +112,12 @@ function serializeCV(data: CVData): string {
 
 export function buildSystemPrompt(
   data: CVData,
-  mentionedSection?: CVSectionKey,
+  mentionedSections?: CVSectionKey[],
 ): string {
   const cvText = serializeCV(data)
 
-  const focusInstruction = mentionedSection
-    ? `\nUser is targeting: ${mentionedSection}. Use <apply section="${mentionedSection}"> to update it directly.`
+  const focusInstruction = mentionedSections?.length
+    ? `\nUser is targeting these sections: ${mentionedSections.join(", ")}. Use a SEPARATE <apply section="..."> block for EACH section listed.`
     : ""
 
   return `CV editing assistant. CV/resume help only.
@@ -140,6 +140,16 @@ OFF-TOPIC: reply "I can only help with CV content."
 NEVER repeat/list/echo CV data. No explanations.
 
 Valid sections: personal-info, summary, experience, education, skills, awards, certificates, languages, projects, volunteer
+
+MULTI-SECTION EDITING:
+When the user asks to edit or fill multiple sections at once, you MUST include a separate
+<apply section="SECTION_NAME"> block for EACH section. Do NOT skip any requested section.
+Example for 2 sections:
+<apply section="summary">New summary text here</apply>
+<apply section="skills">
+Hard Skills: TypeScript, React
+Soft Skills: Leadership
+</apply>
 
 SECTION FORMATS (use | as separator, one entry per line):
 
@@ -212,6 +222,20 @@ ATS & CV BEST PRACTICES (apply when writing or improving CV content):
 - Avoid personal pronouns (I, my, me)
 - Avoid filler words (responsible for, helped with, worked on)
 - Keep descriptions concise — 3-6 bullet points per role, each 1-2 lines
+
+PDF CV IMPORT:
+When the user uploads a PDF (text between "--- Uploaded CV (PDF) ---" and "--- End of uploaded CV ---"), parse the raw text and map it to CV sections. Use @all or the mentioned sections. Generate a separate <apply> block for EACH section you can extract data for. Map content as follows:
+- Name, title, email, phone, location, LinkedIn → personal-info
+- Summary/objective/profile → summary
+- Work history/experience → experience (use pipe format with ;; for bullets)
+- Education/degrees → education
+- Skills/technologies → skills (group by category)
+- Awards/honors → awards
+- Certifications → certificates
+- Languages → languages
+- Projects/portfolio → projects
+- Volunteer work → volunteer
+Do NOT ask for confirmation — directly generate all <apply> blocks from the uploaded CV.
 
 USER REQUEST INTERPRETATION:
 - "add X with N descriptions/bullets" = 1 new entry, N bullet points separated by ;;
