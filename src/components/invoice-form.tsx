@@ -404,14 +404,15 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           <FileText className="size-4 text-muted-foreground" /> {t("form.invoiceDetails")}
         </h2>
         <div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_auto]">
-          <FormField
-            label={t("form.invoiceNumber")}
-            value={data.invoiceNumber}
-            onChange={(v) => updateField("invoiceNumber", v)}
-            placeholder={t("placeholders.invoiceNumber")}
-          />
-          <div className="space-y-1.5">
-            <Label>{t("form.currency")}</Label>
+          <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:contents">
+            <FormField
+              label={t("form.invoiceNumber")}
+              value={data.invoiceNumber}
+              onChange={(v) => updateField("invoiceNumber", v)}
+              placeholder={t("placeholders.invoiceNumber")}
+            />
+            <div className="space-y-1.5">
+              <Label>{t("form.currency")}</Label>
             <Select
               value={data.currency}
               onValueChange={(v) => updateField("currency", v)}
@@ -434,17 +435,20 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 ))}
               </SelectContent>
             </Select>
+            </div>
           </div>
-          <DatePicker
-            label={t("form.dateOfIssue")}
-            value={data.dateOfIssue}
-            onChange={(v) => updateField("dateOfIssue", v)}
-          />
-          <DatePicker
-            label={t("form.dateDue")}
-            value={data.dateDue}
-            onChange={(v) => updateField("dateDue", v)}
-          />
+          <div className="col-span-1 grid grid-cols-2 gap-3 sm:contents">
+            <DatePicker
+              label={t("form.dateOfIssue")}
+              value={data.dateOfIssue}
+              onChange={(v) => updateField("dateOfIssue", v)}
+            />
+            <DatePicker
+              label={t("form.dateDue")}
+              value={data.dateDue}
+              onChange={(v) => updateField("dateDue", v)}
+            />
+          </div>
           <div className="space-y-1.5">
             <Label className="flex items-center gap-1">
               <Palette className="size-3" /> {t("form.color")}
@@ -555,7 +559,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     aria-label={t("a11y.removeLogo")}
                     onClick={() => updateFrom("logoUrl", "")}
                   >
-                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    <Trash2 className="size-3.5 text-destructive" aria-hidden="true" />
                   </Button>
                 )}
               </div>
@@ -649,11 +653,12 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               onChange={(v) => updateItem(item.id, "description", v)}
               placeholder={t("placeholders.description")}
             />
-            <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-[1fr_3.5rem_auto_auto]">
-              <PeriodRangePicker
-                value={item.period}
-                onChange={(v) => updateItem(item.id, "period", v)}
-              />
+            <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_3.5rem_auto_auto]">
+            <PeriodRangePicker
+              value={item.period}
+              onChange={(v) => updateItem(item.id, "period", v)}
+            />
+            <div className="grid grid-cols-3 items-end gap-2 sm:contents">
               <FormField
                 label={t("form.qty")}
                 numeric
@@ -672,6 +677,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 onChange={() => {}}
                 disabled
               />
+            </div>
             </div>
 
             {/* Sub-items */}
@@ -724,7 +730,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                       aria-label={t("a11y.removeSubItem")}
                       onClick={() => removeSubItem(item.id, sub.id)}
                     >
-                      <Trash2 className="size-3.5" aria-hidden="true" />
+                      <Trash2 className="size-3.5 text-destructive" aria-hidden="true" />
                     </Button>
                   </div>
                 ))}
@@ -755,7 +761,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           {data.adjustments.map((adj) => (
             <div
               key={adj.id}
-              className="grid grid-cols-1 items-end gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto_auto]"
+              className="space-y-2 lg:grid lg:grid-cols-[1fr_auto_auto_auto_auto] lg:items-end lg:gap-2 lg:space-y-0"
             >
               <FormField
                 label={t("form.label")}
@@ -763,56 +769,59 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 onChange={(v) => updateAdjustment(adj.id, "label", v)}
                 placeholder={t("placeholders.adjustmentLabel")}
               />
-              <div className="space-y-1.5">
-                <Label>{t("form.type")}</Label>
-                <Select
-                  value={adj.type}
-                  onValueChange={(v) =>
-                    updateAdjustment(adj.id, "type", v)
-                  }
+              <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2">
+                <div className="space-y-1.5">
+                  <Label>{t("form.type")}</Label>
+                  <Select
+                    value={adj.type}
+                    onValueChange={(v) =>
+                      updateAdjustment(adj.id, "type", v)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="add">{t("form.typeAdd")}</SelectItem>
+                      <SelectItem value="deduct">{t("form.typeDeduct")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("form.mode")}</Label>
+                  <Select
+                    value={adj.mode}
+                    onValueChange={(v) =>
+                      updateAdjustment(adj.id, "mode", v)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed">{t("form.modeFixed")}</SelectItem>
+                      <SelectItem value="percentage">{t("form.modePercentage")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <FormField
+                  label={adj.mode === "percentage" ? t("form.modePercentage") : t("form.amount")}
+                  type="number"
+                  value={String(adj.value)}
+                  onChange={(v) => updateAdjustment(adj.id, "value", Number(v))}
+                  min={0}
+                  step={adj.mode === "percentage" ? "0.1" : "0.01"}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0"
+                  aria-label={t("a11y.removeAdjustment")}
+                  onClick={() => removeAdjustment(adj.id)}
                 >
-                  <SelectTrigger className="w-full sm:w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="add">{t("form.typeAdd")}</SelectItem>
-                    <SelectItem value="deduct">{t("form.typeDeduct")}</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Trash2 className="size-3.5 text-destructive" aria-hidden="true" />
+                </Button>
               </div>
-              <div className="space-y-1.5">
-                <Label>{t("form.mode")}</Label>
-                <Select
-                  value={adj.mode}
-                  onValueChange={(v) =>
-                    updateAdjustment(adj.id, "mode", v)
-                  }
-                >
-                  <SelectTrigger className="w-full sm:w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">{t("form.modeFixed")}</SelectItem>
-                    <SelectItem value="percentage">{t("form.modePercentage")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <FormField
-                label={adj.mode === "percentage" ? t("form.modePercentage") : t("form.amount")}
-                type="number"
-                value={String(adj.value)}
-                onChange={(v) => updateAdjustment(adj.id, "value", Number(v))}
-                min={0}
-                step={adj.mode === "percentage" ? "0.1" : "0.01"}
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label={t("a11y.removeAdjustment")}
-                onClick={() => removeAdjustment(adj.id)}
-              >
-                <Trash2 className="size-3.5" aria-hidden="true" />
-              </Button>
             </div>
           ))}
           <Button variant="outline" size="sm" onClick={addAdjustment}>
@@ -832,7 +841,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           {data.customFields.map((cf) => (
             <div
               key={cf.id}
-              className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_1fr_auto]"
+              className="grid grid-cols-[1fr_auto] items-end gap-2 sm:grid-cols-[1fr_1fr_auto]"
             >
               <FormField
                 label={t("form.label")}
@@ -840,15 +849,29 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 onChange={(v) => updateCustomField(cf.id, "label", v)}
                 placeholder={t("placeholders.customFieldLabel")}
               />
-              <FormField
-                label={t("form.value")}
-                value={cf.value}
-                onChange={(v) => updateCustomField(cf.id, "value", v)}
-                placeholder={t("placeholders.customFieldValue")}
-              />
+              <div className="col-span-1 flex items-end gap-2 sm:contents">
+                <div className="min-w-0 flex-1">
+                  <FormField
+                    label={t("form.value")}
+                    value={cf.value}
+                    onChange={(v) => updateCustomField(cf.id, "value", v)}
+                    placeholder={t("placeholders.customFieldValue")}
+                  />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 sm:hidden"
+                  aria-label={t("a11y.removeField")}
+                  onClick={() => removeCustomField(cf.id)}
+                >
+                  <Trash2 className="size-3.5" aria-hidden="true" />
+                </Button>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
+                className="hidden sm:inline-flex"
                 aria-label={t("a11y.removeField")}
                 onClick={() => removeCustomField(cf.id)}
               >
