@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -13,8 +14,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { DatePicker } from "@/components/form/date-picker"
 import { FormField } from "@/components/form/form-field"
 import { AddressFields } from "@/components/form/address-fields"
+import { PeriodRangePicker } from "@/components/form/period-range-picker"
 import { SectionList } from "@/components/form/section-list"
 import {
   Building2,
@@ -36,6 +39,7 @@ export interface SenderInfo {
   companyName: string
   address: string
   city: string
+  kecamatan: string
   state: string
   postalCode: string
   country: string
@@ -47,6 +51,7 @@ export interface RecipientInfo {
   name: string
   address: string
   city: string
+  kecamatan: string
   stateRegion: string
   postalCode: string
   country: string
@@ -79,6 +84,12 @@ export interface InvoiceAdjustment {
   value: number
 }
 
+export interface InvoiceCustomField {
+  id: string
+  label: string
+  value: string
+}
+
 export interface InvoiceData {
   invoiceNumber: string
   dateOfIssue: string
@@ -89,6 +100,7 @@ export interface InvoiceData {
   billTo: RecipientInfo
   items: InvoiceLineItem[]
   adjustments: InvoiceAdjustment[]
+  customFields: InvoiceCustomField[]
   notes: string
   taxRate: number
 }
@@ -181,6 +193,7 @@ interface InvoiceFormProps {
 }
 
 export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
+  const { t } = useTranslation()
   function updateField<K extends keyof InvoiceData>(
     field: K,
     value: InvoiceData[K]
@@ -232,7 +245,9 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         if (item.id !== id) return item
         const updated = { ...item, [field]: value }
         if (field === "qty" || field === "unitPrice") {
-          updated.amount = Number(updated.qty) * Number(updated.unitPrice)
+          const ownAmount = Number(updated.qty) * Number(updated.unitPrice)
+          const subTotal = updated.subItems.reduce((s, si) => s + si.amount, 0)
+          updated.amount = ownAmount + subTotal
         }
         return updated
       }),
@@ -272,10 +287,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       ...data,
       items: data.items.map((item) => {
         if (item.id !== itemId) return item
-        return {
-          ...item,
-          subItems: item.subItems.filter((s) => s.id !== subId),
-        }
+        const newSubItems = item.subItems.filter((s) => s.id !== subId)
+        const ownAmount = Number(item.qty) * Number(item.unitPrice)
+        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0)
+        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal }
       }),
     })
   }
@@ -290,17 +305,17 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       ...data,
       items: data.items.map((item) => {
         if (item.id !== itemId) return item
-        return {
-          ...item,
-          subItems: item.subItems.map((sub) => {
-            if (sub.id !== subId) return sub
-            const updated = { ...sub, [field]: value }
-            if (field === "qty" || field === "unitPrice") {
-              updated.amount = Number(updated.qty) * Number(updated.unitPrice)
-            }
-            return updated
-          }),
-        }
+        const newSubItems = item.subItems.map((sub) => {
+          if (sub.id !== subId) return sub
+          const updated = { ...sub, [field]: value }
+          if (field === "qty" || field === "unitPrice") {
+            updated.amount = Number(updated.qty) * Number(updated.unitPrice)
+          }
+          return updated
+        })
+        const ownAmount = Number(item.qty) * Number(item.unitPrice)
+        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0)
+        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal }
       }),
     })
   }
@@ -343,6 +358,38 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
     })
   }
 
+  // ── Custom fields ──
+
+  function addCustomField() {
+    onChange({
+      ...data,
+      customFields: [
+        ...data.customFields,
+        { id: crypto.randomUUID(), label: "", value: "" },
+      ],
+    })
+  }
+
+  function removeCustomField(id: string) {
+    onChange({
+      ...data,
+      customFields: data.customFields.filter((f) => f.id !== id),
+    })
+  }
+
+  function updateCustomField(
+    id: string,
+    field: "label" | "value",
+    value: string,
+  ) {
+    onChange({
+      ...data,
+      customFields: data.customFields.map((f) =>
+        f.id === id ? { ...f, [field]: value } : f,
+      ),
+    })
+  }
+
   // ── Logo upload ──
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -361,17 +408,17 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       {/* ── Invoice Details ── */}
       <section>
         <h2 className="flex items-center gap-2 text-sm font-medium">
-          <FileText className="size-4 text-muted-foreground" /> Invoice Details
+          <FileText className="size-4 text-muted-foreground" /> {t("form.invoiceDetails")}
         </h2>
         <div className="mt-3 grid grid-cols-[1fr_auto_1fr_1fr_auto] gap-3">
           <FormField
-            label="Invoice Number"
+            label={t("form.invoiceNumber")}
             value={data.invoiceNumber}
             onChange={(v) => updateField("invoiceNumber", v)}
-            placeholder="IN-00000001"
+            placeholder={t("placeholders.invoiceNumber")}
           />
           <div className="space-y-1.5">
-            <Label>Currency</Label>
+            <Label>{t("form.currency")}</Label>
             <Select
               value={data.currency}
               onValueChange={(v) => updateField("currency", v)}
@@ -395,21 +442,19 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               </SelectContent>
             </Select>
           </div>
-          <FormField
-            label="Date of Issue"
-            type="date"
+          <DatePicker
+            label={t("form.dateOfIssue")}
             value={data.dateOfIssue}
             onChange={(v) => updateField("dateOfIssue", v)}
           />
-          <FormField
-            label="Date Due"
-            type="date"
+          <DatePicker
+            label={t("form.dateDue")}
             value={data.dateDue}
             onChange={(v) => updateField("dateDue", v)}
           />
           <div className="space-y-1.5">
             <Label className="flex items-center gap-1">
-              <Palette className="size-3" /> Color
+              <Palette className="size-3" /> {t("form.color")}
             </Label>
             <div className="flex items-center gap-1">
               <label
@@ -431,7 +476,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     onClick={() => updateField("accentColor", c)}
                     className="size-7 shrink-0 rounded border border-input transition-transform hover:scale-110"
                     style={{ backgroundColor: c }}
-                    aria-label={`Set accent color to ${c}`}
+                    aria-label={t("a11y.setAccentColor", { color: c })}
                   />
                 )
               )}
@@ -446,8 +491,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       <Collapsible defaultOpen>
         <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium [&[data-state=open]>.chevron]:rotate-180">
           <span className="flex items-center gap-2">
-            <Building2 className="size-4 text-muted-foreground" /> From (Your
-            Company)
+            <Building2 className="size-4 text-muted-foreground" /> {t("form.fromSection")}
           </span>
           <ChevronDown className="chevron size-4 text-muted-foreground transition-transform duration-200" />
         </CollapsibleTrigger>
@@ -455,41 +499,44 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           <div className="mt-3 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <FormField
-                label="Company Name"
+                label={t("form.companyName")}
                 value={data.from.companyName}
                 onChange={(v) => updateFrom("companyName", v)}
-                placeholder="Acme Corp"
+                placeholder={t("placeholders.companyName")}
               />
               <FormField
-                label="Email"
+                label={t("form.email")}
                 type="email"
                 value={data.from.email}
                 onChange={(v) => updateFrom("email", v)}
-                placeholder="billing@example.com"
+                placeholder={t("placeholders.emailSender")}
               />
             </div>
             <FormField
-              label="Address"
+              label={t("form.address")}
               value={data.from.address}
               onChange={(v) => updateFrom("address", v)}
-              placeholder="123 Main Street"
+              placeholder={t("placeholders.addressSender")}
               multiline
               rows={2}
             />
             <AddressFields
               values={{
                 city: data.from.city,
+                kecamatan: data.from.kecamatan,
                 state: data.from.state,
                 postalCode: data.from.postalCode,
                 country: data.from.country,
               }}
-              onChange={(field, value) => updateFrom(field, value)}
-              stateLabel="State"
-              cityPlaceholder="San Francisco"
-              statePlaceholder="California"
+              onChange={(updates) =>
+                onChange({ ...data, from: { ...data.from, ...updates } })
+              }
+              stateLabel={t("form.state")}
+              cityPlaceholder={t("placeholders.citySender")}
+              statePlaceholder={t("placeholders.stateSender")}
             />
             <div className="space-y-1.5">
-              <Label>Company Logo</Label>
+              <Label>{t("form.companyLogo")}</Label>
               <div className="flex items-center gap-2">
                 {data.from.logoUrl && (
                   <img
@@ -500,7 +547,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 )}
                 <label className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-input bg-background px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground">
                   <Upload className="size-3" />
-                  {data.from.logoUrl ? "Change" : "Upload"}
+                  {data.from.logoUrl ? t("form.change") : t("form.upload")}
                   <input
                     type="file"
                     accept="image/*"
@@ -529,7 +576,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       <Collapsible defaultOpen>
         <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium [&[data-state=open]>.chevron]:rotate-180">
           <span className="flex items-center gap-2">
-            <UserRound className="size-4 text-muted-foreground" /> Bill To
+            <UserRound className="size-4 text-muted-foreground" /> {t("form.billToSection")}
           </span>
           <ChevronDown className="chevron size-4 text-muted-foreground transition-transform duration-200" />
         </CollapsibleTrigger>
@@ -537,43 +584,50 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           <div className="mt-3 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <FormField
-                label="Name"
+                label={t("form.name")}
                 value={data.billTo.name}
                 onChange={(v) => updateBillTo("name", v)}
-                placeholder="Client Name"
+                placeholder={t("placeholders.clientName")}
               />
               <FormField
-                label="Email"
+                label={t("form.email")}
                 type="email"
                 value={data.billTo.email}
                 onChange={(v) => updateBillTo("email", v)}
-                placeholder="client@example.com"
+                placeholder={t("placeholders.clientEmail")}
               />
             </div>
             <FormField
-              label="Address"
+              label={t("form.address")}
               value={data.billTo.address}
               onChange={(v) => updateBillTo("address", v)}
-              placeholder="456 Client Avenue"
+              placeholder={t("placeholders.clientAddress")}
               multiline
               rows={2}
             />
             <AddressFields
               values={{
                 city: data.billTo.city,
+                kecamatan: data.billTo.kecamatan,
                 state: data.billTo.stateRegion,
                 postalCode: data.billTo.postalCode,
                 country: data.billTo.country,
               }}
-              onChange={(field, value) =>
-                updateBillTo(
-                  field === "state" ? "stateRegion" : field,
-                  value
-                )
-              }
-              stateLabel="State/Region"
-              cityPlaceholder="Jakarta"
-              statePlaceholder="DKI Jakarta"
+              onChange={(updates) => {
+                // Map AddressValues keys to RecipientInfo keys
+                const mapped: Partial<RecipientInfo> = {}
+                for (const [key, val] of Object.entries(updates)) {
+                  if (key === "state") {
+                    mapped.stateRegion = val
+                  } else {
+                    (mapped as Record<string, string>)[key] = val
+                  }
+                }
+                onChange({ ...data, billTo: { ...data.billTo, ...mapped } })
+              }}
+              stateLabel={t("form.stateRegion")}
+              cityPlaceholder={t("placeholders.cityRecipient")}
+              statePlaceholder={t("placeholders.stateRecipient")}
             />
           </div>
         </CollapsibleContent>
@@ -583,40 +637,38 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Line Items ── */}
       <SectionList
-        title="Line Items"
+        title={t("form.lineItems")}
         onTitleChange={() => {}}
-        placeholder="Line Items"
+        placeholder={t("form.lineItems")}
         titleIcon={<ListOrdered className="size-4 text-muted-foreground" />}
         items={data.items}
         onAdd={addItem}
         onRemove={removeItem}
         onReorder={reorderItems}
-        addLabel="Add Item"
+        addLabel={t("form.addItem")}
         summary={(item, i) => item.description || `Item ${i + 1}`}
         renderContent={(item) => (
           <div className="space-y-3">
             <FormField
-              label="Description"
+              label={t("form.description")}
               value={item.description}
               onChange={(v) => updateItem(item.id, "description", v)}
-              placeholder="Service or product description"
+              placeholder={t("placeholders.description")}
             />
-            <FormField
-              label="Period"
-              value={item.period}
-              onChange={(v) => updateItem(item.id, "period", v)}
-              placeholder="Feb 23–Mar 22, 2026"
-            />
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-3">
+              <PeriodRangePicker
+                value={item.period}
+                onChange={(v) => updateItem(item.id, "period", v)}
+              />
               <FormField
-                label="Qty"
+                label={t("form.qty")}
                 type="number"
                 value={String(item.qty)}
                 onChange={(v) => updateItem(item.id, "qty", Number(v))}
                 min={0}
               />
               <FormField
-                label="Unit Price"
+                label={t("form.unitPrice")}
                 type="number"
                 value={String(item.unitPrice)}
                 onChange={(v) => updateItem(item.id, "unitPrice", Number(v))}
@@ -624,7 +676,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 step="0.01"
               />
               <FormField
-                label="Amount"
+                label={t("form.amount")}
                 value={formatCurrency(item.qty * item.unitPrice, data.currency)}
                 onChange={() => {}}
                 disabled
@@ -635,7 +687,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             {item.subItems.length > 0 && (
               <div className="ml-4 space-y-2 border-l-2 border-muted pl-4">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Sub-items
+                  {t("form.subItems")}
                 </p>
                 {item.subItems.map((sub) => (
                   <div
@@ -643,15 +695,15 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     className="grid grid-cols-[1fr_auto_auto_auto_auto] items-end gap-2"
                   >
                     <FormField
-                      label="Label"
+                      label={t("form.label")}
                       value={sub.label}
                       onChange={(v) =>
                         updateSubItem(item.id, sub.id, "label", v)
                       }
-                      placeholder="First 10"
+                      placeholder={t("placeholders.subItemLabel")}
                     />
                     <FormField
-                      label="Qty"
+                      label={t("form.qty")}
                       type="number"
                       value={String(sub.qty)}
                       onChange={(v) =>
@@ -660,7 +712,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                       min={0}
                     />
                     <FormField
-                      label="Unit Price"
+                      label={t("form.unitPrice")}
                       type="number"
                       value={String(sub.unitPrice)}
                       onChange={(v) =>
@@ -670,7 +722,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                       step="0.01"
                     />
                     <FormField
-                      label="Amount"
+                      label={t("form.amount")}
                       value={formatCurrency(
                         sub.qty * sub.unitPrice,
                         data.currency
@@ -694,7 +746,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               size="sm"
               onClick={() => addSubItem(item.id)}
             >
-              <Plus className="size-3.5" /> Add Sub-Item
+              <Plus className="size-3.5" /> {t("form.addSubItem")}
             </Button>
           </div>
         )}
@@ -705,10 +757,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       {/* ── Adjustments ── */}
       <section>
         <h2 className="flex items-center gap-2 text-sm font-medium">
-          <SlidersHorizontal className="size-4 text-muted-foreground" /> Adjustments
+          <SlidersHorizontal className="size-4 text-muted-foreground" /> {t("form.adjustments")}
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Service charges, discounts, down payments, etc.
+          {t("form.adjustmentsDesc")}
         </p>
         <div className="mt-3 space-y-3">
           {data.adjustments.map((adj) => (
@@ -717,13 +769,13 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               className="grid grid-cols-[1fr_auto_auto_auto_auto] items-end gap-2"
             >
               <FormField
-                label="Label"
+                label={t("form.label")}
                 value={adj.label}
                 onChange={(v) => updateAdjustment(adj.id, "label", v)}
-                placeholder="e.g. Service Charge"
+                placeholder={t("placeholders.adjustmentLabel")}
               />
               <div className="space-y-1.5">
-                <Label>Type</Label>
+                <Label>{t("form.type")}</Label>
                 <Select
                   value={adj.type}
                   onValueChange={(v) =>
@@ -734,13 +786,13 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="add">+ Add</SelectItem>
-                    <SelectItem value="deduct">- Deduct</SelectItem>
+                    <SelectItem value="add">{t("form.typeAdd")}</SelectItem>
+                    <SelectItem value="deduct">{t("form.typeDeduct")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Mode</Label>
+                <Label>{t("form.mode")}</Label>
                 <Select
                   value={adj.mode}
                   onValueChange={(v) =>
@@ -751,13 +803,13 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fixed">Fixed</SelectItem>
-                    <SelectItem value="percentage">%</SelectItem>
+                    <SelectItem value="fixed">{t("form.modeFixed")}</SelectItem>
+                    <SelectItem value="percentage">{t("form.modePercentage")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <FormField
-                label={adj.mode === "percentage" ? "%" : "Amount"}
+                label={adj.mode === "percentage" ? t("form.modePercentage") : t("form.amount")}
                 type="number"
                 value={String(adj.value)}
                 onChange={(v) => updateAdjustment(adj.id, "value", Number(v))}
@@ -774,7 +826,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             </div>
           ))}
           <Button variant="outline" size="sm" onClick={addAdjustment}>
-            <Plus className="size-3.5" /> Add Adjustment
+            <Plus className="size-3.5" /> {t("form.addAdjustment")}
           </Button>
         </div>
       </section>
@@ -784,15 +836,43 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       {/* ── Notes & Settings ── */}
       <section>
         <h2 className="flex items-center gap-2 text-sm font-medium">
-          <StickyNote className="size-4 text-muted-foreground" /> Notes &
-          Settings
+          <StickyNote className="size-4 text-muted-foreground" /> {t("form.notesSettings")}
         </h2>
         <div className="mt-3 space-y-3">
+          {data.customFields.map((cf) => (
+            <div
+              key={cf.id}
+              className="grid grid-cols-[1fr_1fr_auto] items-end gap-2"
+            >
+              <FormField
+                label={t("form.label")}
+                value={cf.label}
+                onChange={(v) => updateCustomField(cf.id, "label", v)}
+                placeholder={t("placeholders.customFieldLabel")}
+              />
+              <FormField
+                label={t("form.value")}
+                value={cf.value}
+                onChange={(v) => updateCustomField(cf.id, "value", v)}
+                placeholder={t("placeholders.customFieldValue")}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeCustomField(cf.id)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={addCustomField}>
+            <Plus className="size-3.5" /> {t("form.addField")}
+          </Button>
           <FormField
-            label="Notes"
+            label={t("form.notes")}
             value={data.notes}
             onChange={(v) => updateField("notes", v)}
-            placeholder="Payment terms, bank details, or other notes..."
+            placeholder={t("placeholders.notes")}
             multiline
             rows={3}
           />

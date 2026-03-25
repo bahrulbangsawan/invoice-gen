@@ -19,6 +19,7 @@ import {
 } from "./invoice-system-prompt"
 import { getInvoiceSuggestions } from "./invoice-suggestions"
 import { KeyRound } from "lucide-react"
+import { useTranslation } from "@/i18n"
 import { PdfAttachmentAdapter } from "./pdf-attachment-adapter"
 
 // ── Apply logic ────────────────────────────────────────────
@@ -151,6 +152,7 @@ interface InvoiceAssistantProps {
 }
 
 export function InvoiceAssistant({ data, onApply }: InvoiceAssistantProps) {
+  const { t } = useTranslation()
   const { apiKey } = useApiKey()
   const [keyDialogOpen, setKeyDialogOpen] = useState(false)
 
@@ -222,7 +224,7 @@ export function InvoiceAssistant({ data, onApply }: InvoiceAssistantProps) {
         type="button"
         onClick={() => setKeyDialogOpen(true)}
         className="fixed right-4 bottom-18 z-50 flex size-8 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform hover:scale-110 hover:bg-accent hover:text-accent-foreground active:scale-90"
-        aria-label="API Key Settings"
+        aria-label={t("a11y.apiKeySettings")}
       >
         <KeyRound className="size-4" />
       </button>
@@ -232,12 +234,13 @@ export function InvoiceAssistant({ data, onApply }: InvoiceAssistantProps) {
 }
 
 function NoKeyButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation()
   return (
     <button
       type="button"
       onClick={onClick}
       className="fixed right-4 bottom-4 z-50 flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow transition-transform hover:scale-110 active:scale-90"
-      aria-label="Set up AI Assistant"
+      aria-label={t("a11y.setupAiAssistant")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

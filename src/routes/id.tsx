@@ -4,7 +4,7 @@ import { headForLocale } from "@/i18n"
 
 const BASE_URL = "https://invoice.bahrul.me"
 
-export const Route = createFileRoute("/")({
-  head: () => headForLocale("en", BASE_URL),
+export const Route = createFileRoute("/id")({
+  head: () => headForLocale("id", BASE_URL),
   component: InvoiceGenerator,
 })

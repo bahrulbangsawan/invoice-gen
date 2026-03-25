@@ -5,7 +5,6 @@ import {
   View,
   Image,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer"
 import type { InvoiceData } from "@/components/invoice-form"
 import {
@@ -15,15 +14,13 @@ import {
   calcTotal,
   calcAdjustmentAmount,
 } from "@/components/invoice-form"
+import { getT, type Locale } from "@/i18n"
 
 // ── Date formatting ───────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
+  if (!dateStr) return ""
+  return dateStr
 }
 
 // ── Styles ────────────────────────────────────────────────
@@ -71,7 +68,7 @@ const styles = StyleSheet.create({
   metaLabel: {
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    width: 80,
+    width: 90,
     color: "#444444",
   },
   metaValue: {
@@ -136,7 +133,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tableHeaderCell: {
-    fontSize: 7,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
     color: "#444444",
     textTransform: "uppercase",
@@ -149,31 +146,37 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   colDescription: {
-    flex: 4,
+    flex: 1,
   },
   colQty: {
-    flex: 1,
+    width: 40,
+    flexShrink: 0,
     textAlign: "right",
+    paddingLeft: 8,
   },
   colUnitPrice: {
-    flex: 1,
+    width: 110,
+    flexShrink: 0,
     textAlign: "right",
+    paddingLeft: 8,
   },
   colAmount: {
-    flex: 1,
+    width: 110,
+    flexShrink: 0,
     textAlign: "right",
+    paddingLeft: 8,
   },
   itemDescription: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#1a1a1a",
   },
   itemPeriod: {
-    fontSize: 7,
+    fontSize: 8,
     color: "#888888",
     marginTop: 2,
   },
   itemNumber: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#1a1a1a",
     textAlign: "right",
   },
@@ -182,12 +185,12 @@ const styles = StyleSheet.create({
   subItemRow: {
     flexDirection: "row",
     paddingVertical: 4,
-    paddingLeft: 14,
     alignItems: "flex-start",
   },
   subItemLabel: {
     fontSize: 8,
     color: "#666666",
+    paddingLeft: 14,
   },
   subItemNumber: {
     fontSize: 8,
@@ -267,7 +270,8 @@ const styles = StyleSheet.create({
 
 // ── Component ─────────────────────────────────────────────
 
-export function InvoiceDocument({ data }: { data: InvoiceData }) {
+export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; locale?: Locale }) {
+  const t = getT(locale)
   const subtotal = calcSubtotal(data.items)
   const tax = calcTax(subtotal, data.taxRate)
   const total = calcTotal(data.items, data.taxRate, data.adjustments)
@@ -281,7 +285,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerRow}>
-            <Text style={styles.invoiceTitle}>Invoice</Text>
+            <Text style={styles.invoiceTitle}>{t("preview.invoice")}</Text>
             {data.from.logoUrl ? (
               <Image src={data.from.logoUrl} style={styles.logo} />
             ) : null}
@@ -289,15 +293,15 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
 
           <View style={styles.metaBlock}>
             <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Invoice number</Text>
+              <Text style={styles.metaLabel}>{t("preview.invoiceNumber")}</Text>
               <Text style={styles.metaValue}>{data.invoiceNumber}</Text>
             </View>
             <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Date of issue</Text>
+              <Text style={styles.metaLabel}>{t("preview.dateOfIssue")}</Text>
               <Text style={styles.metaValue}>{formatDate(data.dateOfIssue)}</Text>
             </View>
             <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Date due</Text>
+              <Text style={styles.metaLabel}>{t("preview.dateDue")}</Text>
               <Text style={styles.metaValue}>{formatDate(data.dateDue)}</Text>
             </View>
           </View>
@@ -312,7 +316,10 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
               <Text style={styles.partyText}>{data.from.address}</Text>
             ) : null}
             <Text style={styles.partyText}>
-              {[data.from.city, data.from.state, data.from.postalCode]
+              {(data.from.country === "Indonesia"
+                ? [data.from.kecamatan, data.from.city, data.from.state, data.from.postalCode]
+                : [data.from.city, data.from.state, data.from.postalCode]
+              )
                 .filter(Boolean)
                 .join(", ")}
             </Text>
@@ -326,13 +333,16 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
 
           {/* Bill To */}
           <View style={styles.partyColumn}>
-            <Text style={styles.partyTitle}>Bill to</Text>
+            <Text style={styles.partyTitle}>{t("preview.billTo")}</Text>
             <Text style={styles.partyName}>{data.billTo.name}</Text>
             {data.billTo.address ? (
               <Text style={styles.partyText}>{data.billTo.address}</Text>
             ) : null}
             <Text style={styles.partyText}>
-              {[data.billTo.city, data.billTo.stateRegion, data.billTo.postalCode]
+              {(data.billTo.country === "Indonesia"
+                ? [data.billTo.kecamatan, data.billTo.city, data.billTo.stateRegion, data.billTo.postalCode]
+                : [data.billTo.city, data.billTo.stateRegion, data.billTo.postalCode]
+              )
                 .filter(Boolean)
                 .join(", ")}
             </Text>
@@ -348,7 +358,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         {/* Amount due */}
         <View style={styles.amountDueSection}>
           <Text style={styles.amountDueText}>
-            {formatCurrency(total, data.currency)} {data.currency} due{" "}
+            {formatCurrency(total, data.currency)} {data.currency} {t("preview.due")}{" "}
             {formatDate(data.dateDue)}
           </Text>
         </View>
@@ -358,13 +368,13 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
           {/* Header row */}
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.colDescription]}>
-              Description
+              {t("preview.description")}
             </Text>
-            <Text style={[styles.tableHeaderCell, styles.colQty]}>Qty</Text>
+            <Text style={[styles.tableHeaderCell, styles.colQty]}>{t("preview.qty")}</Text>
             <Text style={[styles.tableHeaderCell, styles.colUnitPrice]}>
-              Unit price
+              {t("preview.unitPrice")}
             </Text>
-            <Text style={[styles.tableHeaderCell, styles.colAmount]}>Amount</Text>
+            <Text style={[styles.tableHeaderCell, styles.colAmount]}>{t("preview.amount")}</Text>
           </View>
 
           {/* Item rows */}
@@ -411,14 +421,14 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         <View style={styles.footer}>
           <View style={styles.totalsBlock}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalLabel}>{t("preview.subtotal")}</Text>
               <Text style={styles.totalValue}>
                 {formatCurrency(subtotal, data.currency)}
               </Text>
             </View>
             {data.taxRate > 0 ? (
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Tax ({data.taxRate}%)</Text>
+                <Text style={styles.totalLabel}>{t("preview.tax")} ({data.taxRate}%)</Text>
                 <Text style={styles.totalValue}>
                   {formatCurrency(tax, data.currency)}
                 </Text>
@@ -429,7 +439,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
               return (
                 <View key={adj.id} style={styles.totalRow}>
                   <Text style={styles.totalLabel}>
-                    {adj.type === "deduct" ? "−" : "+"} {adj.label || "Adjustment"}
+                    {adj.type === "deduct" ? "\u2212" : "+"} {adj.label || t("preview.adjustment")}
                     {adj.mode === "percentage" ? ` (${adj.value}%)` : ""}
                   </Text>
                   <Text style={styles.totalValue}>
@@ -439,13 +449,13 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
               )
             })}
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalLabel}>{t("preview.total")}</Text>
               <Text style={styles.totalValue}>
                 {formatCurrency(total, data.currency)}
               </Text>
             </View>
             <View style={styles.totalDueRow}>
-              <Text style={styles.totalDueLabel}>Amount due</Text>
+              <Text style={styles.totalDueLabel}>{t("preview.amountDue")}</Text>
               <Text style={styles.totalDueValue}>
                 {formatCurrency(total, data.currency)} {data.currency}
               </Text>
@@ -453,11 +463,21 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
           </View>
         </View>
 
-        {/* Notes */}
-        {data.notes ? (
+        {/* Custom fields & Notes */}
+        {(data.customFields.length > 0 || data.notes) ? (
           <View style={styles.notesSection}>
-            <Text style={styles.notesTitle}>Notes</Text>
-            <Text style={styles.notesText}>{data.notes}</Text>
+            {data.customFields.map((cf) => (
+              <View key={cf.id} style={styles.metaRow}>
+                <Text style={styles.metaLabel}>{cf.label}</Text>
+                <Text style={styles.metaValue}>{cf.value}</Text>
+              </View>
+            ))}
+            {data.notes ? (
+              <>
+                <Text style={[styles.notesTitle, data.customFields.length > 0 ? { marginTop: 6 } : {}]}>{t("preview.notes")}</Text>
+                <Text style={styles.notesText}>{data.notes}</Text>
+              </>
+            ) : null}
           </View>
         ) : null}
 
@@ -465,7 +485,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         <Text
           style={styles.pageNumber}
           render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`
+            t("preview.pageOf", { page: pageNumber, total: totalPages })
           }
           fixed
         />

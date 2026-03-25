@@ -1,16 +1,9 @@
 import type { InvoiceData } from "@/components/invoice-form"
 import { formatCurrency, calcSubtotal, calcTax, calcTotal, calcAdjustmentAmount } from "@/components/invoice-form"
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return ""
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
-}
+import { useTranslation } from "@/i18n"
 
 export function InvoicePreview({ data }: { data: InvoiceData }) {
+  const { t } = useTranslation()
   const { from, billTo, items, adjustments, currency, taxRate } = data
   const subtotal = calcSubtotal(items)
   const tax = calcTax(subtotal, taxRate)
@@ -21,7 +14,7 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
   if (isEmpty) {
     return (
       <div className="flex min-h-[600px] items-center justify-center text-center text-muted-foreground">
-        Start filling in the form to see your invoice preview
+        {t("preview.emptyState")}
       </div>
     )
   }
@@ -34,7 +27,7 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
       <div className="p-8">
         {/* Header: Invoice title + logo */}
         <div className="flex items-start justify-between">
-          <h1 className="text-xl font-bold">Invoice</h1>
+          <h1 className="text-xl font-bold">{t("preview.invoice")}</h1>
           {from.logoUrl && (
             <img
               src={from.logoUrl}
@@ -45,19 +38,13 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         </div>
 
         {/* Metadata */}
-        <div className="mt-4 space-y-1 text-xs">
-          <div className="flex gap-2">
-            <span className="font-bold">Invoice number</span>
-            <span>{data.invoiceNumber}</span>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-bold">Date of issue</span>
-            <span>{formatDate(data.dateOfIssue)}</span>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-bold">Date due</span>
-            <span>{formatDate(data.dateDue)}</span>
-          </div>
+        <div className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
+          <span className="font-bold">{t("preview.invoiceNumber")}</span>
+          <span>{data.invoiceNumber}</span>
+          <span className="font-bold">{t("preview.dateOfIssue")}</span>
+          <span>{data.dateOfIssue}</span>
+          <span className="font-bold">{t("preview.dateDue")}</span>
+          <span>{data.dateDue}</span>
         </div>
 
         {/* Separator */}
@@ -71,9 +58,12 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
               <p className="font-bold">{from.companyName}</p>
             )}
             {from.address && <p>{from.address}</p>}
-            {(from.city || from.state || from.postalCode) && (
+            {(from.city || from.kecamatan || from.state || from.postalCode) && (
               <p>
-                {[from.city, from.state, from.postalCode]
+                {(from.country === "Indonesia"
+                  ? [from.kecamatan, from.city, from.state, from.postalCode]
+                  : [from.city, from.state, from.postalCode]
+                )
                   .filter(Boolean)
                   .join(", ")}
               </p>
@@ -84,12 +74,15 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
 
           {/* Recipient */}
           <div className="space-y-0.5">
-            <p className="font-bold">Bill to</p>
+            <p className="font-bold">{t("preview.billTo")}</p>
             {billTo.name && <p>{billTo.name}</p>}
             {billTo.address && <p>{billTo.address}</p>}
-            {(billTo.city || billTo.stateRegion || billTo.postalCode) && (
+            {(billTo.city || billTo.kecamatan || billTo.stateRegion || billTo.postalCode) && (
               <p>
-                {[billTo.city, billTo.stateRegion, billTo.postalCode]
+                {(billTo.country === "Indonesia"
+                  ? [billTo.kecamatan, billTo.city, billTo.stateRegion, billTo.postalCode]
+                  : [billTo.city, billTo.stateRegion, billTo.postalCode]
+                )
                   .filter(Boolean)
                   .join(", ")}
               </p>
@@ -101,8 +94,8 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
 
         {/* Amount due banner */}
         <p className="mt-6 text-base font-bold">
-          {formatCurrency(total, currency)} {currency} due{" "}
-          {formatDate(data.dateDue)}
+          {formatCurrency(total, currency)} {currency} {t("preview.due")}{" "}
+          {data.dateDue}
         </p>
 
         {/* Line items table */}
@@ -110,10 +103,10 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
           <div className="mt-6">
             {/* Column headers */}
             <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 border-b border-gray-300 pb-2 text-[10px] font-medium text-gray-500">
-              <span>Description</span>
-              <span className="w-16 text-right">Qty</span>
-              <span className="w-24 text-right">Unit price</span>
-              <span className="w-24 text-right">Amount</span>
+              <span>{t("preview.description")}</span>
+              <span className="w-16 text-right">{t("preview.qty")}</span>
+              <span className="w-24 text-right">{t("preview.unitPrice")}</span>
+              <span className="w-24 text-right">{t("preview.amount")}</span>
             </div>
 
             {/* Rows */}
@@ -164,12 +157,12 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         <div className="mt-6 flex justify-end">
           <div className="w-64 space-y-2 text-xs">
             <div className="flex justify-between">
-              <span>Subtotal</span>
+              <span>{t("preview.subtotal")}</span>
               <span>{formatCurrency(subtotal, currency)}</span>
             </div>
             {taxRate > 0 && (
               <div className="flex justify-between">
-                <span>Tax ({taxRate}%)</span>
+                <span>{t("preview.tax")} ({taxRate}%)</span>
                 <span>{formatCurrency(tax, currency)}</span>
               </div>
             )}
@@ -178,7 +171,7 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
               return (
                 <div key={adj.id} className="flex justify-between">
                   <span>
-                    {adj.type === "deduct" ? "−" : "+"} {adj.label || "Adjustment"}
+                    {adj.type === "deduct" ? "\u2212" : "+"} {adj.label || t("preview.adjustment")}
                     {adj.mode === "percentage" ? ` (${adj.value}%)` : ""}
                   </span>
                   <span>{formatCurrency(amount, currency)}</span>
@@ -186,15 +179,35 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
               )
             })}
             <div className="flex justify-between border-t pt-2">
-              <span>Total</span>
+              <span>{t("preview.total")}</span>
               <span>{formatCurrency(total, currency)}</span>
             </div>
             <div className="flex justify-between font-bold">
-              <span>Amount due ({currency})</span>
+              <span>{t("preview.amountDue")} ({currency})</span>
               <span>{formatCurrency(total, currency)}</span>
             </div>
           </div>
         </div>
+
+        {/* Custom fields */}
+        {data.customFields.length > 0 && (
+          <div className="mt-6 space-y-1 text-xs">
+            {data.customFields.map((cf) => (
+              <div key={cf.id} className="grid grid-cols-[8rem_1fr] gap-2">
+                <span className="font-bold">{cf.label}</span>
+                <span>{cf.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Notes */}
+        {data.notes && (
+          <div className="mt-6 text-xs">
+            <p className="font-bold text-gray-500">{t("preview.notes")}</p>
+            <p className="mt-1 text-gray-500">{data.notes}</p>
+          </div>
+        )}
       </div>
     </article>
   )
