@@ -403,7 +403,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         <h2 className="flex items-center gap-2 text-sm font-medium">
           <FileText className="size-4 text-muted-foreground" /> {t("form.invoiceDetails")}
         </h2>
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr_1fr_auto] items-end gap-3">
+        <div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_auto]">
           <FormField
             label={t("form.invoiceNumber")}
             value={data.invoiceNumber}
@@ -449,9 +449,9 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             <Label className="flex items-center gap-1">
               <Palette className="size-3" /> {t("form.color")}
             </Label>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <label
-                className="flex size-7 shrink-0 cursor-pointer rounded border border-input shadow-sm"
+                className="flex size-8 shrink-0 cursor-pointer rounded border border-input shadow-sm"
                 style={{ backgroundColor: data.accentColor }}
               >
                 <input
@@ -467,7 +467,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     key={c}
                     type="button"
                     onClick={() => updateField("accentColor", c)}
-                    className="size-7 shrink-0 rounded border border-input transition-transform hover:scale-110"
+                    className="size-8 shrink-0 rounded border border-input transition-transform hover:scale-110"
                     style={{ backgroundColor: c }}
                     aria-label={t("a11y.setAccentColor", { color: c })}
                   />
@@ -490,7 +490,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="mt-3 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 label={t("form.companyName")}
                 value={data.from.companyName}
@@ -552,9 +552,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label={t("a11y.removeLogo")}
                     onClick={() => updateFrom("logoUrl", "")}
                   >
-                    <Trash2 className="size-3.5" />
+                    <Trash2 className="size-3.5" aria-hidden="true" />
                   </Button>
                 )}
               </div>
@@ -575,7 +576,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="mt-3 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 label={t("form.name")}
                 value={data.billTo.name}
@@ -648,7 +649,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               onChange={(v) => updateItem(item.id, "description", v)}
               placeholder={t("placeholders.description")}
             />
-            <div className="grid grid-cols-[1fr_3.5rem_auto_auto] items-end gap-3">
+            <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-[1fr_3.5rem_auto_auto]">
               <PeriodRangePicker
                 value={item.period}
                 onChange={(v) => updateItem(item.id, "period", v)}
@@ -675,14 +676,14 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
             {/* Sub-items */}
             {item.subItems.length > 0 && (
-              <div className="ml-4 space-y-2 border-l-2 border-muted pl-4">
+              <div className="ml-2 space-y-2 border-l-2 border-muted pl-2 sm:ml-4 sm:pl-4">
                 <p className="text-xs font-medium text-muted-foreground">
                   {t("form.subItems")}
                 </p>
                 {item.subItems.map((sub) => (
                   <div
                     key={sub.id}
-                    className="grid grid-cols-[1fr_3.5rem_auto_auto_auto] items-end gap-2"
+                    className="grid grid-cols-1 items-end gap-2 sm:grid-cols-2 md:grid-cols-[1fr_3.5rem_auto_auto_auto]"
                   >
                     <FormField
                       label={t("form.label")}
@@ -720,9 +721,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={t("a11y.removeSubItem")}
                       onClick={() => removeSubItem(item.id, sub.id)}
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3.5" aria-hidden="true" />
                     </Button>
                   </div>
                 ))}
@@ -753,7 +755,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           {data.adjustments.map((adj) => (
             <div
               key={adj.id}
-              className="grid grid-cols-[1fr_auto_auto_auto_auto] items-end gap-2"
+              className="grid grid-cols-1 items-end gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto_auto]"
             >
               <FormField
                 label={t("form.label")}
@@ -769,7 +771,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     updateAdjustment(adj.id, "type", v)
                   }
                 >
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-full sm:w-24">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -786,7 +788,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     updateAdjustment(adj.id, "mode", v)
                   }
                 >
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-full sm:w-24">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -806,9 +808,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label={t("a11y.removeAdjustment")}
                 onClick={() => removeAdjustment(adj.id)}
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5" aria-hidden="true" />
               </Button>
             </div>
           ))}
@@ -829,7 +832,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           {data.customFields.map((cf) => (
             <div
               key={cf.id}
-              className="grid grid-cols-[1fr_1fr_auto] items-end gap-2"
+              className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_1fr_auto]"
             >
               <FormField
                 label={t("form.label")}
@@ -846,9 +849,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label={t("a11y.removeField")}
                 onClick={() => removeCustomField(cf.id)}
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5" aria-hidden="true" />
               </Button>
             </div>
           ))}

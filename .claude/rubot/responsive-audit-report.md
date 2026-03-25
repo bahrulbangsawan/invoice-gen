@@ -1,118 +1,143 @@
 # Responsive Audit Report
 
-**Date**: 2026-03-24
-**Scope**: Full codebase audit
-**Priority**: All breakpoints equally
-**Overall Score**: 78/100
+**Date**: 2026-03-25
+**Scope**: Full codebase audit (invoice generator)
+**Overall Score**: 57/100
+
+---
 
 ## Unit Violation Summary
 
 | Category | Violations Found | Files Affected |
 |----------|-----------------|----------------|
-| Font sizes (px) | 7 | cv-form.tsx, thread.tsx |
-| Spacing (px) | 0 | -- |
-| Dimensions (px) | 1 | switch.tsx (shadcn) |
-| Card radius (px) | 2 | phone-input.tsx, tooltip.tsx (shadcn) |
-| **Total** | **10** | **4 files** |
+| Font sizes (px) | 3 | `invoice-preview.tsx` |
+| Spacing (px) | 1 | `tabs.tsx` (UI lib) |
+| Dimensions (px) | 3 | `invoice-preview.tsx`, `date-selector.tsx` |
+| Border radius (px) | 3 | `phone-input.tsx`, `language-switcher.tsx`, `tooltip.tsx` |
+| **Total** | **10** | **5 files** |
 
-### Font Size Violations Detail
+### Font Size Violations
 
-All 7 violations are `text-[10px]` (should be `text-[0.625rem]`):
+| File | Line | Current | Fix |
+|------|------|---------|-----|
+| `invoice-preview.tsx` | 105 | `text-[10px]` | `text-[0.625rem]` |
+| `invoice-preview.tsx` | 122 | `text-[10px]` | `text-[0.625rem]` |
+| `invoice-preview.tsx` | 138 | `text-[11px]` | `text-[0.6875rem]` |
 
-| File | Line | Context |
-|------|------|---------|
-| `src/components/cv-form.tsx` | 940 | Experience duration label |
-| `src/components/cv-form.tsx` | 1124 | Education duration label |
-| `src/components/cv-form.tsx` | 1415 | Certificate expiry warning |
-| `src/components/cv-form.tsx` | 1421 | Certificate duration label |
-| `src/components/cv-form.tsx` | 1605 | Volunteer duration label |
-| `src/components/assistant-ui/thread.tsx` | 199 | Suggestion description |
-| `src/components/assistant-ui/thread.tsx` | 367 | Thread metadata |
+### Dimension Violations
 
-### Border Radius Violations Detail
+| File | Line | Current | Fix |
+|------|------|---------|-----|
+| `invoice-preview.tsx` | 16 | `min-h-[600px]` | `min-h-[37.5rem]` |
+| `date-selector.tsx` | 1203 | `w-[470px]` | `w-full sm:w-[29.375rem]` |
+| `date-selector.tsx` | 1273 | `h-[200px]` | `h-[12.5rem]` |
 
-| File | Line | Value | Context |
-|------|------|-------|---------|
-| `src/components/reui/phone-input.tsx` | 215 | `rounded-[5px]` | Flag icon container |
-| `src/components/ui/tooltip.tsx` | 49 | `rounded-[2px]` | Tooltip arrow |
+### Border Radius Violations
 
-Both are shadcn/ui library components — low priority.
+| File | Line | Current | Fix |
+|------|------|---------|-----|
+| `phone-input.tsx` | 215 | `rounded-[5px]` | `rounded-[0.3125rem]` |
+| `language-switcher.tsx` | 85 | `rounded-[1px]` | Acceptable (fine optical detail) |
+| `tooltip.tsx` | 49 | `rounded-[2px]` | Acceptable (fine optical detail) |
+
+---
 
 ## Component Audit
 
-### Main Layout (index.tsx)
+### Main Layout (`invoice-generator.tsx`)
 - Status: **Pass**
-- Uses `min-h-svh` for outer container
-- `flex-col md:flex-row` — correct mobile-first pattern
-- Both panels use `h-svh` with `overflow-y-auto` — proper scrolling
-- Floating download FAB with `fixed bottom-6 left-6 z-50 md:hidden` — correct
+- Uses `min-h-svh` (correct viewport unit)
+- `flex-col md:flex-row` mobile-first split layout
+- Floating FAB download button on mobile (`md:hidden`)
+- Toolbar buttons hide text on mobile (`hidden sm:inline`)
+- Touch target on FAB: `size-12 rounded-full` (3rem = 48px)
 
-### Toolbar Buttons
-- Status: **Warning**
-- "Import JSON" and "Pre-Fill Example" show full text on all screen sizes
-- On very narrow phones (<360px), these could crowd the toolbar
-- Recommendation: Consider icon-only on xs, text on sm+
+### Invoice Form (`invoice-form.tsx`)
+- Status: **CRITICAL - Failing**
+- **Invoice Details** (line 406): `grid-cols-[1fr_auto_1fr_1fr_auto]` — 5 cols, NO mobile breakpoint
+- **Line Item Fields** (line 651): `grid-cols-[1fr_3.5rem_auto_auto]` — 4 cols, no mobile stacking
+- **Sub-Item Fields** (line 685): `grid-cols-[1fr_3.5rem_auto_auto_auto]` — 5 cols, no mobile stacking
+- **Adjustments** (line 756): `grid-cols-[1fr_auto_auto_auto_auto]` — 5 cols, no mobile stacking
+- **Custom Fields** (line 832): `grid-cols-[1fr_1fr_auto]` — 3 cols, no mobile stacking
+- **From/BillTo** (lines 493, 578): `grid-cols-2` — no `grid-cols-1` mobile base
 
-### Grid Layouts
-- Status: **Warning** (1 issue)
-- `cv-form.tsx:1038` — `grid-cols-2` **without responsive prefix** forces 2 columns on mobile
-- All other grids correctly use `sm:grid-cols-2`, `sm:grid-cols-3` pattern
+### Invoice Preview (`invoice-preview.tsx`)
+- Status: **Issues (low priority — print-style layout)**
+- Uses px font sizes (`text-[10px]`, `text-[11px]`) — should be rem
+- `grid-cols-2` sender/recipient (line 54) — no mobile stacking
+- `min-h-[600px]` empty state — should be rem
+- `w-64` totals section — OK (Tailwind rem value = 16rem)
 
-### Cards
+### Address Fields (`address-fields.tsx`)
 - Status: **Pass**
-- Card component uses `rounded-lg` with `overflow-hidden` (shadcn default)
-- Consistent across all instances
-- Note: Not using `rounded-[10%]` pattern but consistent within project
+- `grid-cols-2 gap-3 lg:grid-cols-5` — reasonable mobile-first
+- Combobox inputs are `w-full` on mobile
 
-### Assistant Modal
+### Assistant Modal (`assistant-modal.tsx`)
 - Status: **Pass**
-- Uses `rem` for dimensions: `h-[28rem] w-[26rem]`
-- Fixed positioning: `right-4 bottom-4`
-- Has close affordance via ChevronDown icon
-- Note: Modal width (26rem = 416px) could overflow on phones <420px wide
+- `w-[min(26rem,calc(100vw-2rem))]` — responsive width capping
+- `h-[28rem]` — rem-based height
+- Fixed bottom-right positioning with adequate touch target
 
-### CV Preview
+### Mobile Download FAB
 - Status: **Pass**
-- `.cv-page` uses `max-width: 42rem`, `padding: 2rem 3rem` — all rem
-- Preview templates render inside scrollable container
+- `size-12` touch target (3rem = 48px) exceeds 2.75rem minimum
+- Properly hidden on desktop (`md:hidden`)
 
-### Typography
-- Status: **Pass**
-- Uses Tailwind text classes throughout (rem-based)
-- Body text uses `text-sm`, `text-xs` — appropriate for form UI
-- No responsive heading scale needed (single-page app builder)
+---
 
 ## Breakpoint Configuration
 
-- Custom breakpoints: **Not configured** — using Tailwind v4 defaults (640, 768, 1024, 1280)
-- Using `@import "tailwindcss"` with v4 CSS-first config
-- Base font size: **100% (default)** — no override on `html`
+- **Custom breakpoints**: Not configured — using Tailwind v4 defaults (640, 768, 1024, 1280)
+- **Base font size**: Pass — no explicit px override on `html`, inherits browser 100% default
+- **use-mobile.ts hook**: Uses 768px breakpoint, consistent with `md:` prefix
+- **Viewport units**: `svh` used correctly (accounts for mobile browser chrome)
 
-## Viewport Height Usage
-
-| File | Class | Assessment |
-|------|-------|------------|
-| `index.tsx:225` | `min-h-svh` | Correct (dynamic small viewport) |
-| `index.tsx:227` | `h-svh` | Correct |
-| `index.tsx:257` | `h-svh` | Correct |
-
-Using `svh` instead of `screen` — accounts for mobile browser chrome.
+---
 
 ## Scoring Breakdown
 
 | Category | Weight | Score | Details |
 |----------|--------|-------|---------|
-| Unit Compliance | 30% | 22/30 | 7x `text-[10px]` violations, 2 shadcn radius violations |
-| Mobile Layout | 25% | 20/25 | 1 non-responsive grid, toolbar could overflow on xs |
-| Card Consistency | 10% | 8/10 | Consistent `rounded-lg`, not `10%` but project-consistent |
-| Breakpoint Behavior | 20% | 17/20 | Good mobile-first patterns, default breakpoints |
-| Typography Scaling | 15% | 11/15 | All rem via Tailwind, no responsive heading scale |
-| **Total** | **100%** | **78/100** | |
+| Unit Compliance | 30% | 18/30 | 10 px violations (3 fonts, 3 dims, 1 spacing, 3 radius) |
+| Mobile Layout | 25% | 10/25 | 6 form grids have no mobile breakpoints — critical |
+| Card Consistency | 10% | 9/10 | No custom card radius issues |
+| Breakpoint Behavior | 20% | 10/20 | Main layout OK, all form sections missing breakpoints |
+| Typography Scaling | 15% | 10/15 | Static heading sizes, px fonts in preview |
+| **Total** | **100%** | **57/100** | |
+
+---
 
 ## Priority Fixes
 
-1. **High**: Convert 7x `text-[10px]` to `text-[0.625rem]` in cv-form.tsx and thread.tsx
-2. **High**: Add responsive prefix to `grid-cols-2` at cv-form.tsx:1038 → `grid-cols-1 sm:grid-cols-2`
-3. **Medium**: Consider icon-only toolbar buttons on mobile (<sm) for Import/Pre-Fill
-4. **Low**: Assistant modal width (26rem) may overflow on phones <420px — consider `w-[min(26rem,calc(100vw-2rem))]`
-5. **Low**: Customize Tailwind breakpoints to match 576/768/992/1200 system (optional)
+### 1. CRITICAL: Form grid layouts need mobile breakpoints
+
+**File**: `src/components/invoice-form.tsx`
+
+| Section | Line | Current | Fix |
+|---------|------|---------|-----|
+| Invoice Details | 406 | `grid-cols-[1fr_auto_1fr_1fr_auto]` | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_auto]` |
+| From fields | 493 | `grid-cols-2` | `grid-cols-1 sm:grid-cols-2` |
+| BillTo fields | 578 | `grid-cols-2` | `grid-cols-1 sm:grid-cols-2` |
+| Line item row | 651 | `grid-cols-[1fr_3.5rem_auto_auto]` | `grid-cols-2 sm:grid-cols-[1fr_3.5rem_auto_auto]` |
+| Sub-item row | 685 | `grid-cols-[1fr_3.5rem_auto_auto_auto]` | `grid-cols-2 sm:grid-cols-[1fr_3.5rem_auto_auto_auto]` |
+| Adjustment row | 756 | `grid-cols-[1fr_auto_auto_auto_auto]` | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto_auto]` |
+| Custom field row | 832 | `grid-cols-[1fr_1fr_auto]` | `grid-cols-1 sm:grid-cols-[1fr_1fr_auto]` |
+
+### 2. HIGH: Convert px units to rem
+
+**Files**: `invoice-preview.tsx`, `date-selector.tsx`
+
+Replace all `px` arbitrary values with `rem` equivalents (divide by 16).
+
+### 3. MEDIUM: Preview sender/recipient stacking
+
+**File**: `invoice-preview.tsx:54`
+
+Change `grid-cols-2 gap-8` to `grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8`.
+
+### 4. LOW: Border radius px to rem
+
+**File**: `phone-input.tsx:215`
+
+Convert `rounded-[5px]` to `rounded-[0.3125rem]`.

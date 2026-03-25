@@ -212,7 +212,7 @@ function FlagComponent({ country, countryName }: BasePhoneInput.FlagProps) {
   const Flag = flags[country]
 
   return (
-    <span className="flex h-4 w-4 items-center justify-center [&_svg:not([class*='size-'])]:size-full! [&_svg:not([class*='size-'])]:rounded-[5px]">
+    <span className="flex h-4 w-4 items-center justify-center [&_svg:not([class*='size-'])]:size-full! [&_svg:not([class*='size-'])]:rounded-[0.3125rem]">
       {Flag ? (
         <Flag title={countryName} />
       ) : (

@@ -240,7 +240,7 @@ export function InvoiceAssistant({ data, onApply }: InvoiceAssistantProps) {
       <button
         type="button"
         onClick={() => setKeyDialogOpen(true)}
-        className="fixed right-4 bottom-18 z-50 flex size-8 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform hover:scale-110 hover:bg-accent hover:text-accent-foreground active:scale-90"
+        className="fixed right-4 bottom-[4.5rem] z-50 flex size-9 items-center justify-center rounded-full border bg-background text-foreground shadow-sm transition-transform hover:scale-110 hover:bg-accent hover:text-accent-foreground active:scale-90"
         aria-label={t("a11y.apiKeySettings")}
       >
         <KeyRound className="size-4" />

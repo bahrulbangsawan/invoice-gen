@@ -112,6 +112,15 @@
     "apiKeySettings": "Pengaturan Kunci API",
     "setupAiAssistant": "Atur Asisten AI",
     "setAccentColor": "Atur warna aksen ke {color}",
-    "switchLanguage": "Ganti bahasa"
+    "switchLanguage": "Ganti bahasa",
+    "skipToContent": "Langsung ke konten utama",
+    "removeItem": "Hapus item",
+    "removeSubItem": "Hapus sub-item",
+    "removeAdjustment": "Hapus penyesuaian",
+    "removeField": "Hapus kolom",
+    "removeLogo": "Hapus logo",
+    "dragToReorder": "Seret untuk mengurutkan ulang",
+    "generatingPdf": "Membuat PDF, mohon tunggu",
+    "pdfReady": "PDF berhasil dibuat"
   }
 }

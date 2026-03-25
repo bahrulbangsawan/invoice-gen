@@ -28,11 +28,6 @@ const config = defineConfig({
             "@assistant-ui/react-markdown",
             "remark-gfm",
           ],
-          "vendor-dnd": [
-            "@dnd-kit/core",
-            "@dnd-kit/sortable",
-            "@dnd-kit/utilities",
-          ],
           "vendor-icons": ["lucide-react"],
         },
       },

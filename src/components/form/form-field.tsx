@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { type ReactNode, useId } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -48,17 +48,25 @@ export function FormField({
   max,
   numeric,
 }: FormFieldProps) {
+  const id = useId()
+  const inputId = `field-${id}`
+  const errorId = error ? `${inputId}-error` : undefined
+  const ariaDescribedBy = errorId || undefined
+
   return (
     <div className="space-y-1.5">
-      <Label>{label}</Label>
+      <Label htmlFor={inputId}>{label}</Label>
       {multiline ? (
         <Textarea
+          id={inputId}
           placeholder={placeholder}
           value={value}
           rows={rows}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           disabled={disabled}
+          aria-invalid={!!error}
+          aria-describedby={ariaDescribedBy}
         />
       ) : type === "month" ? (
         <MonthPicker
@@ -68,21 +76,25 @@ export function FormField({
         />
       ) : numeric ? (
         <Input
+          id={inputId}
           type="text"
           inputMode="numeric"
           placeholder={placeholder}
           value={formatWithSeparator(value)}
           aria-invalid={!!error}
+          aria-describedby={ariaDescribedBy}
           onChange={(e) => onChange(parseFromSeparator(e.target.value))}
           onBlur={onBlur}
           disabled={disabled}
         />
       ) : (
         <Input
+          id={inputId}
           type={type}
           placeholder={placeholder}
           value={value}
           aria-invalid={!!error}
+          aria-describedby={ariaDescribedBy}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           disabled={disabled}
@@ -91,7 +103,7 @@ export function FormField({
           max={max}
         />
       )}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p id={errorId} role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

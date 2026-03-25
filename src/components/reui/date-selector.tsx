@@ -1200,7 +1200,7 @@ export function DateSelector({
     <DateSelectorContext.Provider
       value={{ i18n: mergedI18n, variant: "outline", size: "default" }}
     >
-      <div className={cn("w-full space-y-4 sm:w-[470px]", className)}>
+      <div className={cn("w-full space-y-4 sm:w-[29.375rem]", className)}>
         <div className="flex flex-wrap items-center gap-3">
           {label && (
             <h3 className="text-sm font-medium" data-slot="data-selector-label">
@@ -1270,7 +1270,7 @@ export function DateSelector({
           </div>
         ) : (
           <div className="-mr-3 w-full">
-            <ScrollArea key={periodType} className="h-[200px] w-full pe-3">
+            <ScrollArea key={periodType} className="h-[12.5rem] w-full pe-3">
               {periodType === "month" && (
                 <DateSelectorPeriodGrid
                   years={years}

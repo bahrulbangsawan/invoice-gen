@@ -3,6 +3,7 @@ import { format, isBefore, parse } from "date-fns"
 import { CalendarRange } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useTranslation } from "@/i18n"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -65,6 +66,7 @@ export function PeriodRangePicker({
   className,
 }: PeriodRangePickerProps) {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
   const [range, setRange] = useState<DateRange | undefined>(() =>
     parsePeriodString(value),
@@ -114,7 +116,7 @@ export function PeriodRangePicker({
             selected={range}
             onSelect={handleSelect}
             defaultMonth={range?.from}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             showOutsideDays
           />
         </PopoverContent>

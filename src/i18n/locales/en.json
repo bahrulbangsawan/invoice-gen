@@ -112,6 +112,15 @@
     "apiKeySettings": "API Key Settings",
     "setupAiAssistant": "Set up AI Assistant",
     "setAccentColor": "Set accent color to {color}",
-    "switchLanguage": "Switch language"
+    "switchLanguage": "Switch language",
+    "skipToContent": "Skip to main content",
+    "removeItem": "Remove item",
+    "removeSubItem": "Remove sub-item",
+    "removeAdjustment": "Remove adjustment",
+    "removeField": "Remove field",
+    "removeLogo": "Remove logo",
+    "dragToReorder": "Drag to reorder",
+    "generatingPdf": "Generating PDF, please wait",
+    "pdfReady": "PDF generated successfully"
   }
 }
