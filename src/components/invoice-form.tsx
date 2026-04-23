@@ -1,24 +1,20 @@
-import { useTranslation } from "@/i18n"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
+import { FormField } from "@rulisme/ui/form/form-field";
+import { SectionList } from "@rulisme/ui/form/section-list";
+import { Button } from "@rulisme/ui/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@rulisme/ui/ui/collapsible";
+import { Label } from "@rulisme/ui/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { DatePicker } from "@/components/form/date-picker"
-import { FormField } from "@/components/form/form-field"
-import { AddressFields } from "@/components/form/address-fields"
-import { PeriodRangePicker } from "@/components/form/period-range-picker"
-import { SectionList } from "@/components/form/section-list"
+} from "@rulisme/ui/ui/select";
+import { Separator } from "@rulisme/ui/ui/separator";
 import {
   Building2,
   ChevronDown,
@@ -31,78 +27,82 @@ import {
   Trash2,
   Upload,
   UserRound,
-} from "lucide-react"
+} from "lucide-react";
+import { AddressFields } from "@/components/form/address-fields";
+import { DatePicker } from "@/components/form/date-picker";
+import { PeriodRangePicker } from "@/components/form/period-range-picker";
+import { useTranslation } from "@/i18n";
 
 // ── Types ──────────────────────────────────────────────────
 
 export interface SenderInfo {
-  companyName: string
-  address: string
-  city: string
-  kecamatan: string
-  state: string
-  postalCode: string
-  country: string
-  email: string
-  logoUrl: string
+  companyName: string;
+  address: string;
+  city: string;
+  kecamatan: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  email: string;
+  logoUrl: string;
 }
 
 export interface RecipientInfo {
-  name: string
-  address: string
-  city: string
-  kecamatan: string
-  stateRegion: string
-  postalCode: string
-  country: string
-  email: string
+  name: string;
+  address: string;
+  city: string;
+  kecamatan: string;
+  stateRegion: string;
+  postalCode: string;
+  country: string;
+  email: string;
 }
 
 export interface InvoiceSubItem {
-  id: string
-  label: string
-  qty: number
-  unitPrice: number
-  amount: number
+  id: string;
+  label: string;
+  qty: number;
+  unitPrice: number;
+  amount: number;
 }
 
 export interface InvoiceLineItem {
-  id: string
-  description: string
-  period: string
-  qty: number
-  unitPrice: number
-  amount: number
-  subItems: InvoiceSubItem[]
+  id: string;
+  description: string;
+  period: string;
+  qty: number;
+  unitPrice: number;
+  amount: number;
+  subItems: InvoiceSubItem[];
 }
 
 export interface InvoiceAdjustment {
-  id: string
-  label: string
-  type: "add" | "deduct"
-  mode: "percentage" | "fixed"
-  value: number
+  id: string;
+  label: string;
+  type: "add" | "deduct";
+  mode: "percentage" | "fixed";
+  value: number;
 }
 
 export interface InvoiceCustomField {
-  id: string
-  label: string
-  value: string
+  id: string;
+  label: string;
+  value: string;
 }
 
 export interface InvoiceData {
-  invoiceNumber: string
-  dateOfIssue: string
-  dateDue: string
-  currency: string
-  accentColor: string
-  from: SenderInfo
-  billTo: RecipientInfo
-  items: InvoiceLineItem[]
-  adjustments: InvoiceAdjustment[]
-  customFields: InvoiceCustomField[]
-  notes: string
-  taxRate: number
+  invoiceNumber: string;
+  dateOfIssue: string;
+  dateDue: string;
+  currency: string;
+  accentColor: string;
+  from: SenderInfo;
+  billTo: RecipientInfo;
+  items: InvoiceLineItem[];
+  adjustments: InvoiceAdjustment[];
+  customFields: InvoiceCustomField[];
+  notes: string;
+  taxRate: number;
 }
 
 // ── Currency ───────────────────────────────────────────────
@@ -116,7 +116,7 @@ export const CURRENCY_OPTIONS = [
   { value: "AUD", flag: "🇦🇺", label: "AUD — Australian Dollar" },
   { value: "JPY", flag: "🇯🇵", label: "JPY — Japanese Yen" },
   { value: "MYR", flag: "🇲🇾", label: "MYR — Malaysian Ringgit" },
-] as const
+] as const;
 
 const CURRENCY_LOCALE: Record<string, string> = {
   USD: "en-US",
@@ -127,85 +127,86 @@ const CURRENCY_LOCALE: Record<string, string> = {
   AUD: "en-AU",
   JPY: "ja-JP",
   MYR: "ms-MY",
-}
+};
 
 export function formatCurrency(amount: number, currency: string): string {
-  const locale = CURRENCY_LOCALE[currency] ?? "en-US"
+  const locale = CURRENCY_LOCALE[currency] ?? "en-US";
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     minimumFractionDigits: currency === "JPY" ? 0 : 2,
     maximumFractionDigits: currency === "JPY" ? 0 : 2,
-  }).format(amount)
+  }).format(amount);
 }
 
 // ── Calculations ───────────────────────────────────────────
 
 export function calcSubtotal(items: InvoiceLineItem[]): number {
-  return items.reduce((sum, item) => sum + item.amount, 0)
+  return items.reduce((sum, item) => sum + item.amount, 0);
 }
 
 export function calcTax(subtotal: number, taxRate: number): number {
-  return subtotal * (taxRate / 100)
+  return subtotal * (taxRate / 100);
 }
 
 export function calcAdjustmentAmount(
   adj: InvoiceAdjustment,
-  subtotal: number,
+  subtotal: number
 ): number {
-  const raw = adj.mode === "percentage" ? subtotal * (adj.value / 100) : adj.value
-  return adj.type === "deduct" ? -raw : raw
+  const raw =
+    adj.mode === "percentage" ? subtotal * (adj.value / 100) : adj.value;
+  return adj.type === "deduct" ? -raw : raw;
 }
 
 export function calcAdjustmentsTotal(
   adjustments: InvoiceAdjustment[],
-  subtotal: number,
+  subtotal: number
 ): number {
   return adjustments.reduce(
     (sum, adj) => sum + calcAdjustmentAmount(adj, subtotal),
-    0,
-  )
+    0
+  );
 }
 
 export function calcTotal(
   items: InvoiceLineItem[],
   taxRate: number,
-  adjustments: InvoiceAdjustment[] = [],
+  adjustments: InvoiceAdjustment[] = []
 ): number {
-  const subtotal = calcSubtotal(items)
-  const tax = calcTax(subtotal, taxRate)
-  const adj = calcAdjustmentsTotal(adjustments, subtotal)
-  return subtotal + tax + adj
+  const subtotal = calcSubtotal(items);
+  const tax = calcTax(subtotal, taxRate);
+  const adj = calcAdjustmentsTotal(adjustments, subtotal);
+  return subtotal + tax + adj;
 }
 
 // ── Form Component ─────────────────────────────────────────
 
 interface InvoiceFormProps {
-  data: InvoiceData
-  onChange: (data: InvoiceData) => void
+  data: InvoiceData;
+  onChange: (data: InvoiceData) => void;
 }
 
 export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   function updateField<K extends keyof InvoiceData>(
     field: K,
     value: InvoiceData[K]
   ) {
-    onChange({ ...data, [field]: value })
+    onChange({ ...data, [field]: value });
   }
 
   function updateFrom(field: keyof SenderInfo, value: string) {
-    onChange({ ...data, from: { ...data.from, [field]: value } })
+    onChange({ ...data, from: { ...data.from, [field]: value } });
   }
 
   function updateBillTo(field: keyof RecipientInfo, value: string) {
-    onChange({ ...data, billTo: { ...data.billTo, [field]: value } })
+    onChange({ ...data, billTo: { ...data.billTo, [field]: value } });
   }
 
   // ── Line items ──
 
   function addItem() {
-    const id = crypto.randomUUID()
+    const id = crypto.randomUUID();
     onChange({
       ...data,
       items: [
@@ -220,11 +221,11 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           subItems: [],
         },
       ],
-    })
+    });
   }
 
   function removeItem(id: string) {
-    onChange({ ...data, items: data.items.filter((i) => i.id !== id) })
+    onChange({ ...data, items: data.items.filter((i) => i.id !== id) });
   }
 
   function updateItem(
@@ -235,20 +236,22 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
     onChange({
       ...data,
       items: data.items.map((item) => {
-        if (item.id !== id) return item
-        const updated = { ...item, [field]: value }
-        if (field === "qty" || field === "unitPrice") {
-          const ownAmount = Number(updated.qty) * Number(updated.unitPrice)
-          const subTotal = updated.subItems.reduce((s, si) => s + si.amount, 0)
-          updated.amount = ownAmount + subTotal
+        if (item.id !== id) {
+          return item;
         }
-        return updated
+        const updated = { ...item, [field]: value };
+        if (field === "qty" || field === "unitPrice") {
+          const ownAmount = Number(updated.qty) * Number(updated.unitPrice);
+          const subTotal = updated.subItems.reduce((s, si) => s + si.amount, 0);
+          updated.amount = ownAmount + subTotal;
+        }
+        return updated;
       }),
-    })
+    });
   }
 
   function reorderItems(items: InvoiceLineItem[]) {
-    onChange({ ...data, items })
+    onChange({ ...data, items });
   }
 
   // ── Sub-items ──
@@ -257,7 +260,9 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
     onChange({
       ...data,
       items: data.items.map((item) => {
-        if (item.id !== itemId) return item
+        if (item.id !== itemId) {
+          return item;
+        }
         return {
           ...item,
           subItems: [
@@ -270,22 +275,24 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               amount: 0,
             },
           ],
-        }
+        };
       }),
-    })
+    });
   }
 
   function removeSubItem(itemId: string, subId: string) {
     onChange({
       ...data,
       items: data.items.map((item) => {
-        if (item.id !== itemId) return item
-        const newSubItems = item.subItems.filter((s) => s.id !== subId)
-        const ownAmount = Number(item.qty) * Number(item.unitPrice)
-        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0)
-        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal }
+        if (item.id !== itemId) {
+          return item;
+        }
+        const newSubItems = item.subItems.filter((s) => s.id !== subId);
+        const ownAmount = Number(item.qty) * Number(item.unitPrice);
+        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0);
+        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal };
       }),
-    })
+    });
   }
 
   function updateSubItem(
@@ -297,20 +304,24 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
     onChange({
       ...data,
       items: data.items.map((item) => {
-        if (item.id !== itemId) return item
+        if (item.id !== itemId) {
+          return item;
+        }
         const newSubItems = item.subItems.map((sub) => {
-          if (sub.id !== subId) return sub
-          const updated = { ...sub, [field]: value }
-          if (field === "qty" || field === "unitPrice") {
-            updated.amount = Number(updated.qty) * Number(updated.unitPrice)
+          if (sub.id !== subId) {
+            return sub;
           }
-          return updated
-        })
-        const ownAmount = Number(item.qty) * Number(item.unitPrice)
-        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0)
-        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal }
+          const updated = { ...sub, [field]: value };
+          if (field === "qty" || field === "unitPrice") {
+            updated.amount = Number(updated.qty) * Number(updated.unitPrice);
+          }
+          return updated;
+        });
+        const ownAmount = Number(item.qty) * Number(item.unitPrice);
+        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0);
+        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal };
       }),
-    })
+    });
   }
 
   // ── Adjustments ──
@@ -328,27 +339,27 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           value: 0,
         },
       ],
-    })
+    });
   }
 
   function removeAdjustment(id: string) {
     onChange({
       ...data,
       adjustments: data.adjustments.filter((a) => a.id !== id),
-    })
+    });
   }
 
   function updateAdjustment(
     id: string,
     field: keyof Omit<InvoiceAdjustment, "id">,
-    value: string | number,
+    value: string | number
   ) {
     onChange({
       ...data,
       adjustments: data.adjustments.map((a) =>
-        a.id === id ? { ...a, [field]: value } : a,
+        a.id === id ? { ...a, [field]: value } : a
       ),
-    })
+    });
   }
 
   // ── Custom fields ──
@@ -360,93 +371,96 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         ...data.customFields,
         { id: crypto.randomUUID(), label: "", value: "" },
       ],
-    })
+    });
   }
 
   function removeCustomField(id: string) {
     onChange({
       ...data,
       customFields: data.customFields.filter((f) => f.id !== id),
-    })
+    });
   }
 
   function updateCustomField(
     id: string,
     field: "label" | "value",
-    value: string,
+    value: string
   ) {
     onChange({
       ...data,
       customFields: data.customFields.map((f) =>
-        f.id === id ? { ...f, [field]: value } : f,
+        f.id === id ? { ...f, [field]: value } : f
       ),
-    })
+    });
   }
 
   // ── Logo upload ──
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      updateFrom("logoUrl", ev.target?.result as string)
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
     }
-    reader.readAsDataURL(file)
-    e.target.value = ""
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      updateFrom("logoUrl", ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   return (
     <div className="space-y-6">
       {/* ── Invoice Details ── */}
       <section>
-        <h2 className="flex items-center gap-2 text-sm font-medium">
-          <FileText className="size-4 text-muted-foreground" /> {t("form.invoiceDetails")}
+        <h2 className="flex items-center gap-2 font-medium text-sm">
+          <FileText className="size-4 text-muted-foreground" />{" "}
+          {t("form.invoiceDetails")}
         </h2>
         <div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_auto]">
           <div className="grid grid-cols-[1fr_auto] items-end gap-3 sm:contents">
             <FormField
               label={t("form.invoiceNumber")}
-              value={data.invoiceNumber}
               onChange={(v) => updateField("invoiceNumber", v)}
               placeholder={t("placeholders.invoiceNumber")}
+              value={data.invoiceNumber}
             />
             <div className="space-y-1.5">
               <Label>{t("form.currency")}</Label>
-            <Select
-              value={data.currency}
-              onValueChange={(v) => updateField("currency", v)}
-            >
-              <SelectTrigger className="w-auto">
-                <SelectValue>
-                  {(() => {
-                    const c = CURRENCY_OPTIONS.find(
-                      (o) => o.value === data.currency
-                    )
-                    return c ? `${c.flag} ${c.value}` : data.currency
-                  })()}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCY_OPTIONS.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.flag} {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select
+                onValueChange={(v) => updateField("currency", v)}
+                value={data.currency}
+              >
+                <SelectTrigger className="w-auto">
+                  <SelectValue>
+                    {(() => {
+                      const c = CURRENCY_OPTIONS.find(
+                        (o) => o.value === data.currency
+                      );
+                      return c ? `${c.flag} ${c.value}` : data.currency;
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCY_OPTIONS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.flag} {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="col-span-1 grid grid-cols-2 gap-3 sm:contents">
             <DatePicker
               label={t("form.dateOfIssue")}
-              value={data.dateOfIssue}
               onChange={(v) => updateField("dateOfIssue", v)}
+              value={data.dateOfIssue}
             />
             <DatePicker
               label={t("form.dateDue")}
-              value={data.dateDue}
               onChange={(v) => updateField("dateDue", v)}
+              value={data.dateDue}
             />
           </div>
           <div className="space-y-1.5">
@@ -459,21 +473,21 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 style={{ backgroundColor: data.accentColor }}
               >
                 <input
+                  className="sr-only"
+                  onChange={(e) => updateField("accentColor", e.target.value)}
                   type="color"
                   value={data.accentColor}
-                  onChange={(e) => updateField("accentColor", e.target.value)}
-                  className="sr-only"
                 />
               </label>
               {["#f48120", "#2563eb", "#16a34a", "#dc2626", "#7c3aed"].map(
                 (c) => (
                   <button
-                    key={c}
-                    type="button"
-                    onClick={() => updateField("accentColor", c)}
-                    className="size-8 shrink-0 rounded border border-input transition-transform hover:scale-110"
-                    style={{ backgroundColor: c }}
                     aria-label={t("a11y.setAccentColor", { color: c })}
+                    className="size-8 shrink-0 rounded border border-input transition-transform hover:scale-110"
+                    key={c}
+                    onClick={() => updateField("accentColor", c)}
+                    style={{ backgroundColor: c }}
+                    type="button"
                   />
                 )
               )}
@@ -486,9 +500,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── From (Sender) ── */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium [&[data-state=open]>.chevron]:rotate-180">
+        <CollapsibleTrigger className="flex w-full items-center justify-between font-medium text-sm [&[data-state=open]>.chevron]:rotate-180">
           <span className="flex items-center gap-2">
-            <Building2 className="size-4 text-muted-foreground" /> {t("form.fromSection")}
+            <Building2 className="size-4 text-muted-foreground" />{" "}
+            {t("form.fromSection")}
           </span>
           <ChevronDown className="chevron size-4 text-muted-foreground transition-transform duration-200" />
         </CollapsibleTrigger>
@@ -497,27 +512,33 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 label={t("form.companyName")}
-                value={data.from.companyName}
                 onChange={(v) => updateFrom("companyName", v)}
                 placeholder={t("placeholders.companyName")}
+                value={data.from.companyName}
               />
               <FormField
                 label={t("form.email")}
-                type="email"
-                value={data.from.email}
                 onChange={(v) => updateFrom("email", v)}
                 placeholder={t("placeholders.emailSender")}
+                type="email"
+                value={data.from.email}
               />
             </div>
             <FormField
               label={t("form.address")}
-              value={data.from.address}
+              multiline
               onChange={(v) => updateFrom("address", v)}
               placeholder={t("placeholders.addressSender")}
-              multiline
               rows={2}
+              value={data.from.address}
             />
             <AddressFields
+              cityPlaceholder={t("placeholders.citySender")}
+              onChange={(updates) =>
+                onChange({ ...data, from: { ...data.from, ...updates } })
+              }
+              stateLabel={t("form.state")}
+              statePlaceholder={t("placeholders.stateSender")}
               values={{
                 city: data.from.city,
                 kecamatan: data.from.kecamatan,
@@ -525,41 +546,38 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 postalCode: data.from.postalCode,
                 country: data.from.country,
               }}
-              onChange={(updates) =>
-                onChange({ ...data, from: { ...data.from, ...updates } })
-              }
-              stateLabel={t("form.state")}
-              cityPlaceholder={t("placeholders.citySender")}
-              statePlaceholder={t("placeholders.stateSender")}
             />
             <div className="space-y-1.5">
               <Label>{t("form.companyLogo")}</Label>
               <div className="flex items-center gap-2">
                 {data.from.logoUrl && (
                   <img
-                    src={data.from.logoUrl}
                     alt=""
                     className="h-8 rounded border object-contain"
+                    src={data.from.logoUrl}
                   />
                 )}
                 <label className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-input bg-background px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground">
                   <Upload className="size-3" />
                   {data.from.logoUrl ? t("form.change") : t("form.upload")}
                   <input
-                    type="file"
                     accept="image/*"
                     className="hidden"
                     onChange={handleLogoUpload}
+                    type="file"
                   />
                 </label>
                 {data.from.logoUrl && (
                   <Button
-                    variant="ghost"
-                    size="sm"
                     aria-label={t("a11y.removeLogo")}
                     onClick={() => updateFrom("logoUrl", "")}
+                    size="sm"
+                    variant="ghost"
                   >
-                    <Trash2 className="size-3.5 text-destructive" aria-hidden="true" />
+                    <Trash2
+                      aria-hidden="true"
+                      className="size-3.5 text-destructive"
+                    />
                   </Button>
                 )}
               </div>
@@ -572,9 +590,10 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Bill To ── */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium [&[data-state=open]>.chevron]:rotate-180">
+        <CollapsibleTrigger className="flex w-full items-center justify-between font-medium text-sm [&[data-state=open]>.chevron]:rotate-180">
           <span className="flex items-center gap-2">
-            <UserRound className="size-4 text-muted-foreground" /> {t("form.billToSection")}
+            <UserRound className="size-4 text-muted-foreground" />{" "}
+            {t("form.billToSection")}
           </span>
           <ChevronDown className="chevron size-4 text-muted-foreground transition-transform duration-200" />
         </CollapsibleTrigger>
@@ -583,27 +602,42 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 label={t("form.name")}
-                value={data.billTo.name}
                 onChange={(v) => updateBillTo("name", v)}
                 placeholder={t("placeholders.clientName")}
+                value={data.billTo.name}
               />
               <FormField
                 label={t("form.email")}
-                type="email"
-                value={data.billTo.email}
                 onChange={(v) => updateBillTo("email", v)}
                 placeholder={t("placeholders.clientEmail")}
+                type="email"
+                value={data.billTo.email}
               />
             </div>
             <FormField
               label={t("form.address")}
-              value={data.billTo.address}
+              multiline
               onChange={(v) => updateBillTo("address", v)}
               placeholder={t("placeholders.clientAddress")}
-              multiline
               rows={2}
+              value={data.billTo.address}
             />
             <AddressFields
+              cityPlaceholder={t("placeholders.cityRecipient")}
+              onChange={(updates) => {
+                // Map AddressValues keys to RecipientInfo keys
+                const mapped: Partial<RecipientInfo> = {};
+                for (const [key, val] of Object.entries(updates)) {
+                  if (key === "state") {
+                    mapped.stateRegion = val;
+                  } else {
+                    (mapped as Record<string, string>)[key] = val;
+                  }
+                }
+                onChange({ ...data, billTo: { ...data.billTo, ...mapped } });
+              }}
+              stateLabel={t("form.stateRegion")}
+              statePlaceholder={t("placeholders.stateRecipient")}
               values={{
                 city: data.billTo.city,
                 kecamatan: data.billTo.kecamatan,
@@ -611,21 +645,6 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                 postalCode: data.billTo.postalCode,
                 country: data.billTo.country,
               }}
-              onChange={(updates) => {
-                // Map AddressValues keys to RecipientInfo keys
-                const mapped: Partial<RecipientInfo> = {}
-                for (const [key, val] of Object.entries(updates)) {
-                  if (key === "state") {
-                    mapped.stateRegion = val
-                  } else {
-                    (mapped as Record<string, string>)[key] = val
-                  }
-                }
-                onChange({ ...data, billTo: { ...data.billTo, ...mapped } })
-              }}
-              stateLabel={t("form.stateRegion")}
-              cityPlaceholder={t("placeholders.cityRecipient")}
-              statePlaceholder={t("placeholders.stateRecipient")}
             />
           </div>
         </CollapsibleContent>
@@ -635,196 +654,212 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Line Items ── */}
       <SectionList
-        title={t("form.lineItems")}
-        onTitleChange={() => {}}
-        placeholder={t("form.lineItems")}
-        titleIcon={<ListOrdered className="size-4 text-muted-foreground" />}
+        addLabel={t("form.addItem")}
         items={data.items}
         onAdd={addItem}
         onRemove={removeItem}
         onReorder={reorderItems}
-        addLabel={t("form.addItem")}
-        summary={(item, i) => item.description || `Item ${i + 1}`}
+        onTitleChange={() => {}}
+        placeholder={t("form.lineItems")}
         renderContent={(item) => (
           <div className="space-y-3">
             <FormField
               label={t("form.description")}
-              value={item.description}
               onChange={(v) => updateItem(item.id, "description", v)}
               placeholder={t("placeholders.description")}
+              value={item.description}
             />
             <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_3.5rem_auto_auto]">
-            <PeriodRangePicker
-              value={item.period}
-              onChange={(v) => updateItem(item.id, "period", v)}
-            />
-            <div className="grid grid-cols-3 items-end gap-2 sm:contents">
-              <FormField
-                label={t("form.qty")}
-                numeric
-                value={String(item.qty)}
-                onChange={(v) => updateItem(item.id, "qty", Number(v))}
+              <PeriodRangePicker
+                onChange={(v) => updateItem(item.id, "period", v)}
+                value={item.period}
               />
-              <FormField
-                label={t("form.unitPrice")}
-                numeric
-                value={String(item.unitPrice)}
-                onChange={(v) => updateItem(item.id, "unitPrice", Number(v))}
-              />
-              <FormField
-                label={t("form.amount")}
-                value={formatCurrency(item.qty * item.unitPrice, data.currency)}
-                onChange={() => {}}
-                disabled
-              />
-            </div>
+              <div className="grid grid-cols-3 items-end gap-2 sm:contents">
+                <FormField
+                  label={t("form.qty")}
+                  numeric
+                  onChange={(v) => updateItem(item.id, "qty", Number(v))}
+                  value={String(item.qty)}
+                />
+                <FormField
+                  label={t("form.unitPrice")}
+                  numeric
+                  onChange={(v) => updateItem(item.id, "unitPrice", Number(v))}
+                  value={String(item.unitPrice)}
+                />
+                <FormField
+                  disabled
+                  label={t("form.amount")}
+                  onChange={() => {}}
+                  value={formatCurrency(
+                    item.qty * item.unitPrice,
+                    data.currency
+                  )}
+                />
+              </div>
             </div>
 
             {/* Sub-items */}
             {item.subItems.length > 0 && (
-              <div className="ml-2 space-y-2 border-l-2 border-muted pl-2 sm:ml-4 sm:pl-4">
-                <p className="text-xs font-medium text-muted-foreground">
+              <div className="ml-2 space-y-2 border-muted border-l-2 pl-2 sm:ml-4 sm:pl-4">
+                <p className="font-medium text-muted-foreground text-xs">
                   {t("form.subItems")}
                 </p>
                 {item.subItems.map((sub) => (
                   <div
-                    key={sub.id}
                     className="grid grid-cols-1 items-end gap-2 sm:grid-cols-2 md:grid-cols-[1fr_3.5rem_auto_auto_auto]"
+                    key={sub.id}
                   >
                     <FormField
                       label={t("form.label")}
-                      value={sub.label}
                       onChange={(v) =>
                         updateSubItem(item.id, sub.id, "label", v)
                       }
                       placeholder={t("placeholders.subItemLabel")}
+                      value={sub.label}
                     />
                     <FormField
                       label={t("form.qty")}
                       numeric
-                      value={String(sub.qty)}
                       onChange={(v) =>
                         updateSubItem(item.id, sub.id, "qty", Number(v))
                       }
+                      value={String(sub.qty)}
                     />
                     <FormField
                       label={t("form.unitPrice")}
                       numeric
-                      value={String(sub.unitPrice)}
                       onChange={(v) =>
                         updateSubItem(item.id, sub.id, "unitPrice", Number(v))
                       }
+                      value={String(sub.unitPrice)}
                     />
                     <FormField
+                      disabled
                       label={t("form.amount")}
+                      onChange={() => {}}
                       value={formatCurrency(
                         sub.qty * sub.unitPrice,
                         data.currency
                       )}
-                      onChange={() => {}}
-                      disabled
                     />
                     <Button
-                      variant="ghost"
-                      size="sm"
                       aria-label={t("a11y.removeSubItem")}
                       onClick={() => removeSubItem(item.id, sub.id)}
+                      size="sm"
+                      variant="ghost"
                     >
-                      <Trash2 className="size-3.5 text-destructive" aria-hidden="true" />
+                      <Trash2
+                        aria-hidden="true"
+                        className="size-3.5 text-destructive"
+                      />
                     </Button>
                   </div>
                 ))}
               </div>
             )}
             <Button
-              variant="outline"
-              size="sm"
               onClick={() => addSubItem(item.id)}
+              size="sm"
+              variant="outline"
             >
               <Plus className="size-3.5" /> {t("form.addSubItem")}
             </Button>
           </div>
         )}
+        summary={(item, i) => item.description || `Item ${i + 1}`}
+        title={t("form.lineItems")}
+        titleIcon={<ListOrdered className="size-4 text-muted-foreground" />}
       />
 
       <Separator />
 
       {/* ── Adjustments ── */}
       <section>
-        <h2 className="flex items-center gap-2 text-sm font-medium">
-          <SlidersHorizontal className="size-4 text-muted-foreground" /> {t("form.adjustments")}
+        <h2 className="flex items-center gap-2 font-medium text-sm">
+          <SlidersHorizontal className="size-4 text-muted-foreground" />{" "}
+          {t("form.adjustments")}
         </h2>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-muted-foreground text-xs">
           {t("form.adjustmentsDesc")}
         </p>
         <div className="mt-3 space-y-3">
           {data.adjustments.map((adj) => (
             <div
-              key={adj.id}
               className="space-y-2 lg:grid lg:grid-cols-[1fr_auto_auto_auto_auto] lg:items-end lg:gap-2 lg:space-y-0"
+              key={adj.id}
             >
               <FormField
                 label={t("form.label")}
-                value={adj.label}
                 onChange={(v) => updateAdjustment(adj.id, "label", v)}
                 placeholder={t("placeholders.adjustmentLabel")}
+                value={adj.label}
               />
               <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2">
                 <div className="space-y-1.5">
                   <Label>{t("form.type")}</Label>
                   <Select
+                    onValueChange={(v) => updateAdjustment(adj.id, "type", v)}
                     value={adj.type}
-                    onValueChange={(v) =>
-                      updateAdjustment(adj.id, "type", v)
-                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="add">{t("form.typeAdd")}</SelectItem>
-                      <SelectItem value="deduct">{t("form.typeDeduct")}</SelectItem>
+                      <SelectItem value="deduct">
+                        {t("form.typeDeduct")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label>{t("form.mode")}</Label>
                   <Select
+                    onValueChange={(v) => updateAdjustment(adj.id, "mode", v)}
                     value={adj.mode}
-                    onValueChange={(v) =>
-                      updateAdjustment(adj.id, "mode", v)
-                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="fixed">{t("form.modeFixed")}</SelectItem>
-                      <SelectItem value="percentage">{t("form.modePercentage")}</SelectItem>
+                      <SelectItem value="fixed">
+                        {t("form.modeFixed")}
+                      </SelectItem>
+                      <SelectItem value="percentage">
+                        {t("form.modePercentage")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <FormField
-                  label={adj.mode === "percentage" ? t("form.modePercentage") : t("form.amount")}
+                  label={
+                    adj.mode === "percentage"
+                      ? t("form.modePercentage")
+                      : t("form.amount")
+                  }
+                  min={0}
+                  onChange={(v) => updateAdjustment(adj.id, "value", Number(v))}
+                  step={adj.mode === "percentage" ? "0.1" : "0.01"}
                   type="number"
                   value={String(adj.value)}
-                  onChange={(v) => updateAdjustment(adj.id, "value", Number(v))}
-                  min={0}
-                  step={adj.mode === "percentage" ? "0.1" : "0.01"}
                 />
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0"
                   aria-label={t("a11y.removeAdjustment")}
+                  className="shrink-0"
                   onClick={() => removeAdjustment(adj.id)}
+                  size="sm"
+                  variant="ghost"
                 >
-                  <Trash2 className="size-3.5 text-destructive" aria-hidden="true" />
+                  <Trash2
+                    aria-hidden="true"
+                    className="size-3.5 text-destructive"
+                  />
                 </Button>
               </div>
             </div>
           ))}
-          <Button variant="outline" size="sm" onClick={addAdjustment}>
+          <Button onClick={addAdjustment} size="sm" variant="outline">
             <Plus className="size-3.5" /> {t("form.addAdjustment")}
           </Button>
         </div>
@@ -834,64 +869,65 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Notes & Settings ── */}
       <section>
-        <h2 className="flex items-center gap-2 text-sm font-medium">
-          <StickyNote className="size-4 text-muted-foreground" /> {t("form.notesSettings")}
+        <h2 className="flex items-center gap-2 font-medium text-sm">
+          <StickyNote className="size-4 text-muted-foreground" />{" "}
+          {t("form.notesSettings")}
         </h2>
         <div className="mt-3 space-y-3">
           {data.customFields.map((cf) => (
             <div
-              key={cf.id}
               className="grid grid-cols-[1fr_auto] items-end gap-2 sm:grid-cols-[1fr_1fr_auto]"
+              key={cf.id}
             >
               <FormField
                 label={t("form.label")}
-                value={cf.label}
                 onChange={(v) => updateCustomField(cf.id, "label", v)}
                 placeholder={t("placeholders.customFieldLabel")}
+                value={cf.label}
               />
               <div className="col-span-1 flex items-end gap-2 sm:contents">
                 <div className="min-w-0 flex-1">
                   <FormField
                     label={t("form.value")}
-                    value={cf.value}
                     onChange={(v) => updateCustomField(cf.id, "value", v)}
                     placeholder={t("placeholders.customFieldValue")}
+                    value={cf.value}
                   />
                 </div>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 sm:hidden"
                   aria-label={t("a11y.removeField")}
+                  className="shrink-0 sm:hidden"
                   onClick={() => removeCustomField(cf.id)}
+                  size="sm"
+                  variant="ghost"
                 >
-                  <Trash2 className="size-3.5" aria-hidden="true" />
+                  <Trash2 aria-hidden="true" className="size-3.5" />
                 </Button>
               </div>
               <Button
-                variant="ghost"
-                size="sm"
-                className="hidden sm:inline-flex"
                 aria-label={t("a11y.removeField")}
+                className="hidden sm:inline-flex"
                 onClick={() => removeCustomField(cf.id)}
+                size="sm"
+                variant="ghost"
               >
-                <Trash2 className="size-3.5" aria-hidden="true" />
+                <Trash2 aria-hidden="true" className="size-3.5" />
               </Button>
             </div>
           ))}
-          <Button variant="outline" size="sm" onClick={addCustomField}>
+          <Button onClick={addCustomField} size="sm" variant="outline">
             <Plus className="size-3.5" /> {t("form.addField")}
           </Button>
           <FormField
             label={t("form.notes")}
-            value={data.notes}
+            multiline
             onChange={(v) => updateField("notes", v)}
             placeholder={t("placeholders.notes")}
-            multiline
             rows={3}
+            value={data.notes}
           />
         </div>
       </section>
     </div>
-  )
+  );
 }

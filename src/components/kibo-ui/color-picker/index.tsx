@@ -1,5 +1,15 @@
 "use client";
 
+import { cn } from "@rulisme/ui/lib/utils";
+import { Button } from "@rulisme/ui/ui/button";
+import { Input } from "@rulisme/ui/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@rulisme/ui/ui/select";
 import Color from "color";
 import { PipetteIcon } from "lucide-react";
 import { Slider } from "radix-ui";
@@ -15,16 +25,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 type ColorPickerContextValue = {
   hue: number;
@@ -198,7 +198,7 @@ export const ColorPickerSelection = memo(
         {...props}
       >
         <div
-          className="-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute h-4 w-4 rounded-full border-2 border-white"
+          className="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
           style={{
             left: `${positionX * 100}%`,
             top: `${positionY * 100}%`,
@@ -342,7 +342,7 @@ const PercentageInput = ({ className, ...props }: PercentageInputProps) => {
           className
         )}
       />
-      <span className="-translate-y-1/2 absolute top-1/2 right-2 text-muted-foreground text-xs">
+      <span className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground text-xs">
         %
       </span>
     </div>
@@ -364,7 +364,7 @@ export const ColorPickerFormat = ({
     return (
       <div
         className={cn(
-          "-space-x-px relative flex w-full items-center rounded-md shadow-sm",
+          "relative flex w-full items-center -space-x-px rounded-md shadow-sm",
           className
         )}
         {...props}
@@ -389,7 +389,7 @@ export const ColorPickerFormat = ({
     return (
       <div
         className={cn(
-          "-space-x-px flex items-center rounded-md shadow-sm",
+          "flex items-center -space-x-px rounded-md shadow-sm",
           className
         )}
         {...props}
@@ -440,7 +440,7 @@ export const ColorPickerFormat = ({
     return (
       <div
         className={cn(
-          "-space-x-px flex items-center rounded-md shadow-sm",
+          "flex items-center -space-x-px rounded-md shadow-sm",
           className
         )}
         {...props}

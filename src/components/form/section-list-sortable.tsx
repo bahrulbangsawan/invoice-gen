@@ -1,49 +1,55 @@
-import type { ReactNode } from "react"
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
+  type DraggableAttributes,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type DraggableAttributes,
-} from "@dnd-kit/core"
+} from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
   arrayMove,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities"
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { ReactNode } from "react";
 
-export { arrayMove }
+export { arrayMove };
 
 export interface DragHandleProps {
-  attributes: DraggableAttributes
-  listeners: SyntheticListenerMap | undefined
+  attributes: DraggableAttributes;
+  listeners: SyntheticListenerMap | undefined;
 }
 
 export function SortableItem({
   id,
   children,
 }: {
-  id: string
-  children: (props: DragHandleProps) => ReactNode
+  id: string;
+  children: (props: DragHandleProps) => ReactNode;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id })
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  }
+  };
   return (
     <div ref={setNodeRef} style={style}>
       {children({ attributes, listeners })}
     </div>
-  )
+  );
 }
 
 export function SortableList({
@@ -51,29 +57,37 @@ export function SortableList({
   onReorder,
   children,
 }: {
-  ids: string[]
-  onReorder: (oldIndex: number, newIndex: number) => void
-  children: ReactNode
+  ids: string[];
+  onReorder: (oldIndex: number, newIndex: number) => void;
+  children: ReactNode;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor),
-  )
+    useSensor(KeyboardSensor)
+  );
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = ids.indexOf(String(active.id))
-    const newIndex = ids.indexOf(String(over.id))
-    if (oldIndex === -1 || newIndex === -1) return
-    onReorder(oldIndex, newIndex)
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      return;
+    }
+    const oldIndex = ids.indexOf(String(active.id));
+    const newIndex = ids.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+    onReorder(oldIndex, newIndex);
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <DndContext
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+    >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         {children}
       </SortableContext>
     </DndContext>
-  )
+  );
 }

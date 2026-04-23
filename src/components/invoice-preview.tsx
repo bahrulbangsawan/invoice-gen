@@ -1,38 +1,49 @@
-import type { InvoiceData } from "@/components/invoice-form"
-import { formatCurrency, calcSubtotal, calcTax, calcTotal, calcAdjustmentAmount } from "@/components/invoice-form"
-import { useTranslation } from "@/i18n"
+import type { InvoiceData } from "@/components/invoice-form";
+import {
+  calcAdjustmentAmount,
+  calcSubtotal,
+  calcTax,
+  calcTotal,
+  formatCurrency,
+} from "@/components/invoice-form";
+import { useTranslation } from "@/i18n";
 
 export function InvoicePreview({ data }: { data: InvoiceData }) {
-  const { t } = useTranslation()
-  const { from, billTo, items, adjustments, currency, taxRate } = data
-  const subtotal = calcSubtotal(items)
-  const tax = calcTax(subtotal, taxRate)
-  const total = calcTotal(items, taxRate, adjustments)
+  const { t } = useTranslation();
+  const { from, billTo, items, adjustments, currency, taxRate } = data;
+  const subtotal = calcSubtotal(items);
+  const tax = calcTax(subtotal, taxRate);
+  const total = calcTotal(items, taxRate, adjustments);
 
-  const isEmpty = !from.companyName && items.length === 0
+  const isEmpty = !from.companyName && items.length === 0;
 
   if (isEmpty) {
     return (
       <div className="flex min-h-[37.5rem] items-center justify-center text-center text-muted-foreground">
         {t("preview.emptyState")}
       </div>
-    )
+    );
   }
 
   return (
     <article className="invoice-page mx-auto">
       {/* Orange top bar */}
-      <div className="h-1" style={{ backgroundColor: data.accentColor || "#f48120" }} />
+      <div
+        className="h-1"
+        style={{ backgroundColor: data.accentColor || "#f48120" }}
+      />
 
       <div className="p-4 sm:p-6 md:p-8">
         {/* Header: Invoice title + logo */}
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-lg font-bold sm:text-xl">{t("preview.invoice")}</h1>
+          <h1 className="font-bold text-lg sm:text-xl">
+            {t("preview.invoice")}
+          </h1>
           {from.logoUrl && (
             <img
-              src={from.logoUrl}
               alt={from.companyName}
               className="max-h-12 object-contain"
+              src={from.logoUrl}
             />
           )}
         </div>
@@ -48,7 +59,7 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         </div>
 
         {/* Separator */}
-        <div className="my-4 border-t border-gray-300 sm:my-6" />
+        <div className="my-4 border-gray-300 border-t sm:my-6" />
 
         {/* Sender / Recipient two-column */}
         <div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2 sm:gap-8">
@@ -77,10 +88,18 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
             <p className="font-bold">{t("preview.billTo")}</p>
             {billTo.name && <p>{billTo.name}</p>}
             {billTo.address && <p>{billTo.address}</p>}
-            {(billTo.city || billTo.kecamatan || billTo.stateRegion || billTo.postalCode) && (
+            {(billTo.city ||
+              billTo.kecamatan ||
+              billTo.stateRegion ||
+              billTo.postalCode) && (
               <p>
                 {(billTo.country === "Indonesia"
-                  ? [billTo.kecamatan, billTo.city, billTo.stateRegion, billTo.postalCode]
+                  ? [
+                      billTo.kecamatan,
+                      billTo.city,
+                      billTo.stateRegion,
+                      billTo.postalCode,
+                    ]
                   : [billTo.city, billTo.stateRegion, billTo.postalCode]
                 )
                   .filter(Boolean)
@@ -93,7 +112,7 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         </div>
 
         {/* Amount due banner */}
-        <p className="mt-4 text-sm font-bold sm:mt-6 sm:text-base">
+        <p className="mt-4 font-bold text-sm sm:mt-6 sm:text-base">
           {formatCurrency(total, currency)} {currency} {t("preview.due")}{" "}
           {data.dateDue}
         </p>
@@ -102,7 +121,7 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         {items.length > 0 && (
           <div className="-mx-4 mt-4 overflow-x-auto px-4 sm:-mx-0 sm:mt-6 sm:px-0">
             {/* Column headers */}
-            <div className="grid min-w-[20rem] grid-cols-[1fr_2.5rem_auto_auto] gap-2 border-b border-gray-300 pb-2 text-[0.625rem] font-medium text-gray-500 sm:grid-cols-[1fr_3rem_5rem_5rem] sm:gap-4">
+            <div className="grid min-w-[20rem] grid-cols-[1fr_2.5rem_auto_auto] gap-2 border-gray-300 border-b pb-2 font-medium text-[0.625rem] text-gray-500 sm:grid-cols-[1fr_3rem_5rem_5rem] sm:gap-4">
               <span>{t("preview.description")}</span>
               <span className="text-right">{t("preview.qty")}</span>
               <span className="text-right">{t("preview.unitPrice")}</span>
@@ -119,7 +138,9 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
                   <div className="min-w-0">
                     <p className="break-words">{item.description}</p>
                     {item.period && (
-                      <p className="text-[0.625rem] text-gray-500">{item.period}</p>
+                      <p className="text-[0.625rem] text-gray-500">
+                        {item.period}
+                      </p>
                     )}
                   </div>
                   <span className="text-right">{item.qty}</span>
@@ -134,11 +155,13 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
                 {/* Sub-items */}
                 {item.subItems.map((sub) => (
                   <div
-                    key={sub.id}
                     className="grid min-w-[20rem] grid-cols-[1fr_2.5rem_auto_auto] gap-2 border-b py-1.5 pl-3 text-[0.6875rem] sm:grid-cols-[1fr_3rem_5rem_5rem] sm:gap-4 sm:py-2 sm:pl-4"
+                    key={sub.id}
                     style={{ borderColor: "#e5e5e5" }}
                   >
-                    <span className="min-w-0 break-words text-gray-600">{sub.label}</span>
+                    <span className="min-w-0 break-words text-gray-600">
+                      {sub.label}
+                    </span>
                     <span className="text-right">{sub.qty}</span>
                     <span className="text-right">
                       {formatCurrency(sub.unitPrice, currency)}
@@ -162,28 +185,33 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
             </div>
             {taxRate > 0 && (
               <div className="flex justify-between">
-                <span>{t("preview.tax")} ({taxRate}%)</span>
+                <span>
+                  {t("preview.tax")} ({taxRate}%)
+                </span>
                 <span>{formatCurrency(tax, currency)}</span>
               </div>
             )}
             {adjustments.map((adj) => {
-              const amount = calcAdjustmentAmount(adj, subtotal)
+              const amount = calcAdjustmentAmount(adj, subtotal);
               return (
-                <div key={adj.id} className="flex justify-between">
+                <div className="flex justify-between" key={adj.id}>
                   <span>
-                    {adj.type === "deduct" ? "\u2212" : "+"} {adj.label || t("preview.adjustment")}
+                    {adj.type === "deduct" ? "\u2212" : "+"}{" "}
+                    {adj.label || t("preview.adjustment")}
                     {adj.mode === "percentage" ? ` (${adj.value}%)` : ""}
                   </span>
                   <span>{formatCurrency(amount, currency)}</span>
                 </div>
-              )
+              );
             })}
             <div className="flex justify-between border-t pt-2">
               <span>{t("preview.total")}</span>
               <span>{formatCurrency(total, currency)}</span>
             </div>
             <div className="flex justify-between font-bold">
-              <span>{t("preview.amountDue")} ({currency})</span>
+              <span>
+                {t("preview.amountDue")} ({currency})
+              </span>
               <span>{formatCurrency(total, currency)}</span>
             </div>
           </div>
@@ -193,7 +221,10 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         {data.customFields.length > 0 && (
           <div className="mt-4 space-y-1 text-xs sm:mt-6">
             {data.customFields.map((cf) => (
-              <div key={cf.id} className="grid grid-cols-[6rem_1fr] gap-2 sm:grid-cols-[8rem_1fr]">
+              <div
+                className="grid grid-cols-[6rem_1fr] gap-2 sm:grid-cols-[8rem_1fr]"
+                key={cf.id}
+              >
                 <span className="font-bold">{cf.label}</span>
                 <span>{cf.value}</span>
               </div>
@@ -210,5 +241,5 @@ export function InvoicePreview({ data }: { data: InvoiceData }) {
         )}
       </div>
     </article>
-  )
+  );
 }

@@ -1,36 +1,41 @@
-import { useState } from "react"
-import { format, parse } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Label } from "@/components/ui/label"
+import { cn } from "@rulisme/ui/lib/utils";
+import { Button } from "@rulisme/ui/ui/button";
+import { Calendar } from "@rulisme/ui/ui/calendar";
+import { Label } from "@rulisme/ui/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@rulisme/ui/ui/popover";
+import { format, parse } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { useState } from "react";
 
-const DATE_FORMATS = ["dd MMM yyyy", "yyyy-MM-dd", "dd-MM-yyyy", "MM/dd/yyyy"]
+const DATE_FORMATS = ["dd MMM yyyy", "yyyy-MM-dd", "dd-MM-yyyy", "MM/dd/yyyy"];
 
 function parseDate(str: string): Date | undefined {
-  if (!str) return undefined
+  if (!str) {
+    return undefined;
+  }
   for (const fmt of DATE_FORMATS) {
     try {
-      const d = parse(str, fmt, new Date())
-      if (!isNaN(d.getTime())) return d
-    } catch { /* continue */ }
+      const d = parse(str, fmt, new Date());
+      if (!isNaN(d.getTime())) {
+        return d;
+      }
+    } catch {
+      /* continue */
+    }
   }
-  return undefined
+  return undefined;
 }
 
 interface DatePickerProps {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
-  placeholder?: string
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
 export function DatePicker({
@@ -40,48 +45,52 @@ export function DatePicker({
   disabled,
   placeholder = "Select date...",
 }: DatePickerProps) {
-  const [open, setOpen] = useState(false)
-  const [date, setDate] = useState<Date | undefined>(() => parseDate(value))
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(() => parseDate(value));
 
   function handleOpenChange(isOpen: boolean) {
-    if (isOpen) setDate(parseDate(value))
-    setOpen(isOpen)
+    if (isOpen) {
+      setDate(parseDate(value));
+    }
+    setOpen(isOpen);
   }
 
   function handleSelect(selected: Date | undefined) {
-    if (!selected) return
-    setDate(selected)
-    onChange(format(selected, "dd MMM yyyy"))
-    setOpen(false)
+    if (!selected) {
+      return;
+    }
+    setDate(selected);
+    onChange(format(selected, "dd MMM yyyy"));
+    setOpen(false);
   }
 
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>
-      <Popover open={open} onOpenChange={handleOpenChange}>
+      <Popover onOpenChange={handleOpenChange} open={open}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
-            disabled={disabled}
             className={cn(
-              "h-7 w-full justify-start border-input bg-input/20 px-2 text-left text-sm font-normal md:text-xs/relaxed dark:bg-input/30",
-              !value && "text-muted-foreground",
+              "h-7 w-full justify-start border-input bg-input/20 px-2 text-left font-normal text-sm md:text-xs/relaxed dark:bg-input/30",
+              !value && "text-muted-foreground"
             )}
+            disabled={disabled}
+            variant="outline"
           >
             <CalendarIcon className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate">{value || placeholder}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent align="start" className="w-auto p-0">
           <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleSelect}
             defaultMonth={date}
+            mode="single"
+            onSelect={handleSelect}
+            selected={date}
             showOutsideDays
           />
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

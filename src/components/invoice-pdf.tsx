@@ -1,26 +1,28 @@
 import {
   Document,
+  Image,
   Page,
+  StyleSheet,
   Text,
   View,
-  Image,
-  StyleSheet,
-} from "@react-pdf/renderer"
-import type { InvoiceData } from "@/components/invoice-form"
+} from "@react-pdf/renderer";
+import type { InvoiceData } from "@/components/invoice-form";
 import {
-  formatCurrency,
+  calcAdjustmentAmount,
   calcSubtotal,
   calcTax,
   calcTotal,
-  calcAdjustmentAmount,
-} from "@/components/invoice-form"
-import { getT, type Locale } from "@/i18n"
+  formatCurrency,
+} from "@/components/invoice-form";
+import { getT, type Locale } from "@/i18n";
 
 // ── Date formatting ───────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  if (!dateStr) return ""
-  return dateStr
+  if (!dateStr) {
+    return "";
+  }
+  return dateStr;
 }
 
 // ── Styles ────────────────────────────────────────────────
@@ -266,21 +268,32 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: "#888888",
   },
-})
+});
 
 // ── Component ─────────────────────────────────────────────
 
-export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; locale?: Locale }) {
-  const t = getT(locale)
-  const subtotal = calcSubtotal(data.items)
-  const tax = calcTax(subtotal, data.taxRate)
-  const total = calcTotal(data.items, data.taxRate, data.adjustments)
+export function InvoiceDocument({
+  data,
+  locale = "en",
+}: {
+  data: InvoiceData;
+  locale?: Locale;
+}) {
+  const t = getT(locale);
+  const subtotal = calcSubtotal(data.items);
+  const tax = calcTax(subtotal, data.taxRate);
+  const total = calcTotal(data.items, data.taxRate, data.adjustments);
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Orange accent bar */}
-        <View style={[styles.accentBar, { backgroundColor: data.accentColor || "#f48120" }]} />
+        <View
+          style={[
+            styles.accentBar,
+            { backgroundColor: data.accentColor || "#f48120" },
+          ]}
+        />
 
         {/* Header */}
         <View style={styles.header}>
@@ -298,7 +311,9 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
             </View>
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>{t("preview.dateOfIssue")}</Text>
-              <Text style={styles.metaValue}>{formatDate(data.dateOfIssue)}</Text>
+              <Text style={styles.metaValue}>
+                {formatDate(data.dateOfIssue)}
+              </Text>
             </View>
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>{t("preview.dateDue")}</Text>
@@ -317,7 +332,12 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
             ) : null}
             <Text style={styles.partyText}>
               {(data.from.country === "Indonesia"
-                ? [data.from.kecamatan, data.from.city, data.from.state, data.from.postalCode]
+                ? [
+                    data.from.kecamatan,
+                    data.from.city,
+                    data.from.state,
+                    data.from.postalCode,
+                  ]
                 : [data.from.city, data.from.state, data.from.postalCode]
               )
                 .filter(Boolean)
@@ -340,8 +360,17 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
             ) : null}
             <Text style={styles.partyText}>
               {(data.billTo.country === "Indonesia"
-                ? [data.billTo.kecamatan, data.billTo.city, data.billTo.stateRegion, data.billTo.postalCode]
-                : [data.billTo.city, data.billTo.stateRegion, data.billTo.postalCode]
+                ? [
+                    data.billTo.kecamatan,
+                    data.billTo.city,
+                    data.billTo.stateRegion,
+                    data.billTo.postalCode,
+                  ]
+                : [
+                    data.billTo.city,
+                    data.billTo.stateRegion,
+                    data.billTo.postalCode,
+                  ]
               )
                 .filter(Boolean)
                 .join(", ")}
@@ -358,8 +387,8 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
         {/* Amount due */}
         <View style={styles.amountDueSection}>
           <Text style={styles.amountDueText}>
-            {formatCurrency(total, data.currency)} {data.currency} {t("preview.due")}{" "}
-            {formatDate(data.dateDue)}
+            {formatCurrency(total, data.currency)} {data.currency}{" "}
+            {t("preview.due")} {formatDate(data.dateDue)}
           </Text>
         </View>
 
@@ -370,11 +399,15 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
             <Text style={[styles.tableHeaderCell, styles.colDescription]}>
               {t("preview.description")}
             </Text>
-            <Text style={[styles.tableHeaderCell, styles.colQty]}>{t("preview.qty")}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colQty]}>
+              {t("preview.qty")}
+            </Text>
             <Text style={[styles.tableHeaderCell, styles.colUnitPrice]}>
               {t("preview.unitPrice")}
             </Text>
-            <Text style={[styles.tableHeaderCell, styles.colAmount]}>{t("preview.amount")}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colAmount]}>
+              {t("preview.amount")}
+            </Text>
           </View>
 
           {/* Item rows */}
@@ -387,7 +420,9 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
                     <Text style={styles.itemPeriod}>{item.period}</Text>
                   ) : null}
                 </View>
-                <Text style={[styles.itemNumber, styles.colQty]}>{item.qty}</Text>
+                <Text style={[styles.itemNumber, styles.colQty]}>
+                  {item.qty}
+                </Text>
                 <Text style={[styles.itemNumber, styles.colUnitPrice]}>
                   {formatCurrency(item.unitPrice, data.currency)}
                 </Text>
@@ -428,25 +463,28 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
             </View>
             {data.taxRate > 0 ? (
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>{t("preview.tax")} ({data.taxRate}%)</Text>
+                <Text style={styles.totalLabel}>
+                  {t("preview.tax")} ({data.taxRate}%)
+                </Text>
                 <Text style={styles.totalValue}>
                   {formatCurrency(tax, data.currency)}
                 </Text>
               </View>
             ) : null}
             {data.adjustments.map((adj) => {
-              const amount = calcAdjustmentAmount(adj, subtotal)
+              const amount = calcAdjustmentAmount(adj, subtotal);
               return (
                 <View key={adj.id} style={styles.totalRow}>
                   <Text style={styles.totalLabel}>
-                    {adj.type === "deduct" ? "\u2212" : "+"} {adj.label || t("preview.adjustment")}
+                    {adj.type === "deduct" ? "\u2212" : "+"}{" "}
+                    {adj.label || t("preview.adjustment")}
                     {adj.mode === "percentage" ? ` (${adj.value}%)` : ""}
                   </Text>
                   <Text style={styles.totalValue}>
                     {formatCurrency(amount, data.currency)}
                   </Text>
                 </View>
-              )
+              );
             })}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>{t("preview.total")}</Text>
@@ -464,7 +502,7 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
         </View>
 
         {/* Custom fields & Notes */}
-        {(data.customFields.length > 0 || data.notes) ? (
+        {data.customFields.length > 0 || data.notes ? (
           <View style={styles.notesSection}>
             {data.customFields.map((cf) => (
               <View key={cf.id} style={styles.metaRow}>
@@ -474,7 +512,14 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
             ))}
             {data.notes ? (
               <>
-                <Text style={[styles.notesTitle, data.customFields.length > 0 ? { marginTop: 6 } : {}]}>{t("preview.notes")}</Text>
+                <Text
+                  style={[
+                    styles.notesTitle,
+                    data.customFields.length > 0 ? { marginTop: 6 } : {},
+                  ]}
+                >
+                  {t("preview.notes")}
+                </Text>
                 <Text style={styles.notesText}>{data.notes}</Text>
               </>
             ) : null}
@@ -483,13 +528,13 @@ export function InvoiceDocument({ data, locale = "en" }: { data: InvoiceData; lo
 
         {/* Page number */}
         <Text
-          style={styles.pageNumber}
+          fixed
           render={({ pageNumber, totalPages }) =>
             t("preview.pageOf", { page: pageNumber, total: totalPages })
           }
-          fixed
+          style={styles.pageNumber}
         />
       </Page>
     </Document>
-  )
+  );
 }

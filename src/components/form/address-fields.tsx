@@ -1,38 +1,38 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import {
   Combobox,
-  ComboboxInput,
   ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
   ComboboxEmpty,
-} from "@/components/ui/combobox"
-import { countries } from "@/data/countries"
-import { provinces as provinceList } from "@/data/wilayah/provinces"
-import { loadProvinceData, type WilayahEntry } from "@/data/wilayah"
-import { useTranslation } from "@/i18n"
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@rulisme/ui/ui/combobox";
+import { Input } from "@rulisme/ui/ui/input";
+import { Label } from "@rulisme/ui/ui/label";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { countries } from "@/data/countries";
+import { loadProvinceData, type WilayahEntry } from "@/data/wilayah";
+import { provinces as provinceList } from "@/data/wilayah/provinces";
+import { useTranslation } from "@/i18n";
 
 interface AddressValues {
-  city: string
-  kecamatan: string
-  state: string
-  postalCode: string
-  country: string
+  city: string;
+  kecamatan: string;
+  state: string;
+  postalCode: string;
+  country: string;
 }
 
 interface AddressFieldsProps {
-  values: AddressValues
-  onChange: (updates: Partial<AddressValues>) => void
-  stateLabel?: string
-  cityPlaceholder?: string
-  statePlaceholder?: string
+  values: AddressValues;
+  onChange: (updates: Partial<AddressValues>) => void;
+  stateLabel?: string;
+  cityPlaceholder?: string;
+  statePlaceholder?: string;
 }
 
 // Stable references for items arrays (avoid re-creating on each render)
-const countriesArray = [...countries]
-const provincesArray = provinceList.map((p) => p.nama)
+const countriesArray = [...countries];
+const provincesArray = provinceList.map((p) => p.nama);
 
 export function AddressFields({
   values,
@@ -41,62 +41,64 @@ export function AddressFields({
   cityPlaceholder,
   statePlaceholder,
 }: AddressFieldsProps) {
-  const { t } = useTranslation()
-  const isIndonesia = values.country === "Indonesia"
-  const [kabupatenList, setKabupatenList] = useState<WilayahEntry[]>([])
-  const [allKecamatanList, setAllKecamatanList] = useState<WilayahEntry[]>([])
-  const [loadingKab, setLoadingKab] = useState(false)
+  const { t } = useTranslation();
+  const isIndonesia = values.country === "Indonesia";
+  const [kabupatenList, setKabupatenList] = useState<WilayahEntry[]>([]);
+  const [allKecamatanList, setAllKecamatanList] = useState<WilayahEntry[]>([]);
+  const [loadingKab, setLoadingKab] = useState(false);
 
   // Find the selected province code from the province name
-  const selectedProvince = provinceList.find((p) => p.nama === values.state)
+  const selectedProvince = provinceList.find((p) => p.nama === values.state);
 
   // Find the selected kabupaten entry from the kabupaten name
-  const selectedKabupaten = kabupatenList.find((k) => k.nama === values.city)
+  const selectedKabupaten = kabupatenList.find((k) => k.nama === values.city);
 
   // Filter kecamatan by selected kabupaten code prefix
   const kecamatanList = useMemo(() => {
-    if (!selectedKabupaten) return []
-    const prefix = selectedKabupaten.kode + "."
-    return allKecamatanList.filter((k) => k.kode.startsWith(prefix))
-  }, [selectedKabupaten, allKecamatanList])
+    if (!selectedKabupaten) {
+      return [];
+    }
+    const prefix = selectedKabupaten.kode + ".";
+    return allKecamatanList.filter((k) => k.kode.startsWith(prefix));
+  }, [selectedKabupaten, allKecamatanList]);
 
   // Stable string arrays for Combobox items prop
   const kabupatenNames = useMemo(
     () => kabupatenList.map((k) => k.nama),
     [kabupatenList]
-  )
+  );
   const kecamatanNames = useMemo(
     () => kecamatanList.map((k) => k.nama),
     [kecamatanList]
-  )
+  );
 
   // Load kabupaten + kecamatan when province changes
   useEffect(() => {
-    if (!isIndonesia || !selectedProvince) {
-      setKabupatenList([])
-      setAllKecamatanList([])
-      return
+    if (!(isIndonesia && selectedProvince)) {
+      setKabupatenList([]);
+      setAllKecamatanList([]);
+      return;
     }
 
-    let cancelled = false
-    setLoadingKab(true)
+    let cancelled = false;
+    setLoadingKab(true);
 
     loadProvinceData(selectedProvince.kode).then((data) => {
       if (!cancelled) {
-        setKabupatenList(data.kabupaten)
-        setAllKecamatanList(data.kecamatan)
-        setLoadingKab(false)
+        setKabupatenList(data.kabupaten);
+        setAllKecamatanList(data.kecamatan);
+        setLoadingKab(false);
       }
-    })
+    });
 
     return () => {
-      cancelled = true
-    }
-  }, [isIndonesia, selectedProvince?.kode])
+      cancelled = true;
+    };
+  }, [isIndonesia, selectedProvince?.kode]);
 
   const handleCountryChange = useCallback(
     (value: string | null) => {
-      const newCountry = value ?? ""
+      const newCountry = value ?? "";
       if (newCountry !== values.country) {
         onChange({
           country: newCountry,
@@ -104,47 +106,47 @@ export function AddressFields({
           city: "",
           kecamatan: "",
           postalCode: "",
-        })
+        });
       }
     },
     [values.country, onChange]
-  )
+  );
 
   const handleProvinceChange = useCallback(
     (value: string | null) => {
-      const newState = value ?? ""
+      const newState = value ?? "";
       if (newState !== values.state) {
         onChange({
           state: newState,
           city: "",
           kecamatan: "",
           postalCode: "",
-        })
+        });
       }
     },
     [values.state, onChange]
-  )
+  );
 
   const handleKabupatenChange = useCallback(
     (value: string | null) => {
-      const newCity = value ?? ""
+      const newCity = value ?? "";
       if (newCity !== values.city) {
         onChange({
           city: newCity,
           kecamatan: "",
           postalCode: "",
-        })
+        });
       }
     },
     [values.city, onChange]
-  )
+  );
 
   const handleKecamatanChange = useCallback(
     (value: string | null) => {
-      onChange({ kecamatan: value ?? "" })
+      onChange({ kecamatan: value ?? "" });
     },
     [onChange]
-  )
+  );
 
   return (
     <div
@@ -158,14 +160,14 @@ export function AddressFields({
       <div className="space-y-1.5">
         <Label>{t("form.country")}</Label>
         <Combobox
-          value={values.country || null}
-          onValueChange={handleCountryChange}
-          items={countriesArray}
           autoComplete="one-time-code"
+          items={countriesArray}
+          onValueChange={handleCountryChange}
+          value={values.country || null}
         >
           <ComboboxInput
-            placeholder={t("placeholders.searchCountry")}
             className="w-full"
+            placeholder={t("placeholders.searchCountry")}
           />
           <ComboboxContent>
             <ComboboxList>
@@ -185,14 +187,14 @@ export function AddressFields({
         <Label>{stateLabel ?? t("form.stateRegion")}</Label>
         {isIndonesia ? (
           <Combobox
-            value={values.state || null}
-            onValueChange={handleProvinceChange}
-            items={provincesArray}
             autoComplete="one-time-code"
+            items={provincesArray}
+            onValueChange={handleProvinceChange}
+            value={values.state || null}
           >
             <ComboboxInput
-              placeholder={t("placeholders.searchProvince")}
               className="w-full"
+              placeholder={t("placeholders.searchProvince")}
             />
             <ComboboxContent>
               <ComboboxList>
@@ -208,9 +210,9 @@ export function AddressFields({
         ) : (
           <Input
             autoComplete="one-time-code"
+            onChange={(e) => onChange({ state: e.target.value })}
             placeholder={statePlaceholder}
             value={values.state}
-            onChange={(e) => onChange({ state: e.target.value })}
           />
         )}
       </div>
@@ -220,21 +222,21 @@ export function AddressFields({
         <Label>{t("form.city")}</Label>
         {isIndonesia ? (
           <Combobox
-            value={values.city || null}
-            onValueChange={handleKabupatenChange}
-            items={kabupatenNames}
             autoComplete="one-time-code"
+            items={kabupatenNames}
+            onValueChange={handleKabupatenChange}
+            value={values.city || null}
           >
             <ComboboxInput
+              className="w-full"
+              disabled={!selectedProvince || loadingKab}
               placeholder={
-                !selectedProvince
-                  ? t("placeholders.selectProvinceFirst")
-                  : loadingKab
+                selectedProvince
+                  ? loadingKab
                     ? t("placeholders.loading")
                     : t("placeholders.searchKabupaten")
+                  : t("placeholders.selectProvinceFirst")
               }
-              disabled={!selectedProvince || loadingKab}
-              className="w-full"
             />
             <ComboboxContent>
               <ComboboxList>
@@ -250,9 +252,9 @@ export function AddressFields({
         ) : (
           <Input
             autoComplete="one-time-code"
+            onChange={(e) => onChange({ city: e.target.value })}
             placeholder={cityPlaceholder}
             value={values.city}
-            onChange={(e) => onChange({ city: e.target.value })}
           />
         )}
       </div>
@@ -262,21 +264,21 @@ export function AddressFields({
         <div className="space-y-1.5">
           <Label>{t("form.kecamatan")}</Label>
           <Combobox
-            value={values.kecamatan || null}
-            onValueChange={handleKecamatanChange}
-            items={kecamatanNames}
             autoComplete="one-time-code"
+            items={kecamatanNames}
+            onValueChange={handleKecamatanChange}
+            value={values.kecamatan || null}
           >
             <ComboboxInput
-              placeholder={
-                !selectedProvince
-                  ? t("placeholders.selectProvinceFirst")
-                  : !selectedKabupaten
-                    ? t("placeholders.selectKabupatenFirst")
-                    : t("placeholders.searchKecamatan")
-              }
-              disabled={!selectedKabupaten}
               className="w-full"
+              disabled={!selectedKabupaten}
+              placeholder={
+                selectedProvince
+                  ? selectedKabupaten
+                    ? t("placeholders.searchKecamatan")
+                    : t("placeholders.selectKabupatenFirst")
+                  : t("placeholders.selectProvinceFirst")
+              }
             />
             <ComboboxContent>
               <ComboboxList>
@@ -297,11 +299,11 @@ export function AddressFields({
         <Label>{t("form.postalCode")}</Label>
         <Input
           autoComplete="one-time-code"
+          onChange={(e) => onChange({ postalCode: e.target.value })}
           placeholder={t("placeholders.postalCode")}
           value={values.postalCode}
-          onChange={(e) => onChange({ postalCode: e.target.value })}
         />
       </div>
     </div>
-  )
+  );
 }
