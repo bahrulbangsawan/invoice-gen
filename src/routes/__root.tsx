@@ -7,8 +7,8 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
-import { getT, I18nProvider, type Locale } from "@/i18n";
-
+import type { Locale } from "@/i18n";
+import { getT, I18nProvider } from "@/i18n";
 import appCss from "../styles.css?url";
 
 // ── Helpers ────────────────────────────────────────────────

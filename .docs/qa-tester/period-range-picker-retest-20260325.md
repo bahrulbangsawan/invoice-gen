@@ -17,21 +17,25 @@ The Period date range picker in the Line Items section was tested after a code u
 ## Test Scenarios
 
 ### 1. Page Load - PASS
+
 - Reloaded the page at http://localhost:5004/
 - No console errors on load (only info messages and an outdated React Grab v0.1.28 warning)
 - No page errors detected
 
 ### 2. Load Sample Invoice - PASS
+
 - Clicked "Load Sample Invoice" to populate line items
 - Four line items appeared with collapsible details
 - First item: "Durable Objects SQL Storage (First 5 GB-month included)"
 
 ### 3. Expand Line Item - PASS
+
 - Clicked first line item to expand
 - Period button visible showing "Feb 23-Mar 22, 2026"
 - Quantity, rate, and amount fields visible
 
 ### 4. Open Period Picker Popover - PASS (Critical Test)
+
 - Clicked the Period button "Feb 23-Mar 22, 2026"
 - Popover opened WITHOUT crashing
 - No "Something went wrong" error
@@ -45,6 +49,7 @@ The Period date range picker in the Line Items section was tested after a code u
 - "Today" button present
 
 ### 5. Select New Date Range - PASS
+
 - Clicked Feb 10 to set new start date (via JS click)
 - Range expanded to Feb 10-28 (selected dates visible)
 - Clicked Feb 20 (within existing range)
@@ -52,6 +57,7 @@ The Period date range picker in the Line Items section was tested after a code u
 - No errors during any click interactions
 
 ### 6. Button Text Update - PASS
+
 - After closing the popover, the button text updated from "Feb 23-Mar 22, 2026" to "Feb 10-Mar 22, 2026"
 - The start date successfully changed from Feb 23 to Feb 10
 - End date remained Mar 22 (was on a different month page not directly clicked)
@@ -61,6 +67,7 @@ The Period date range picker in the Line Items section was tested after a code u
 ## Console Analysis
 
 No errors detected throughout the entire testing session. Console contained only:
+
 - Vite connection logs (debug)
 - React DevTools info message
 - React Grab v0.1.28 log and outdated version warning (v0.1.29 available)
@@ -87,6 +94,7 @@ No errors detected throughout the entire testing session. Console contained only
 ## Conclusion
 
 The Period date range picker opens and functions correctly without any crashes or errors. The previously reported "Maximum update depth exceeded" issue appears to be resolved. The component successfully:
+
 1. Opens the popover without errors
 2. Displays the calendar with the current range highlighted
 3. Allows clicking dates to modify the range

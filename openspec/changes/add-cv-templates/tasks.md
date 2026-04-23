@@ -44,6 +44,7 @@
 - [ ] **T25** Test PDF download for each style
 
 ## Dependencies
+
 - T6-T7 depend on T2
 - T8-T9 depend on T6-T7
 - T10 depends on T3-T5 and T8-T9

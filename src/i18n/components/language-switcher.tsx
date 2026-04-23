@@ -1,6 +1,7 @@
 import { cn } from "@rulisme/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { type Locale, SUPPORTED_LOCALES, useTranslation } from "@/i18n";
+import type { Locale } from "@/i18n";
+import { SUPPORTED_LOCALES, useTranslation } from "@/i18n";
 
 // ── SVG Flag Icons ─────────────────────────────────────────
 

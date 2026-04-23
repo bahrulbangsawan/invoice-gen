@@ -17,7 +17,7 @@ interface Entry {
 // Parse all (kode, nama) pairs from the SQL file
 const sql = readFileSync(SQL_PATH, "utf-8");
 const regex = /\('([^']+)','([^']*(?:''[^']*)*)'\)/g;
-const entries: Entry[] = [];
+const entries: Array<Entry> = [];
 
 let match: RegExpExecArray | null;
 while ((match = regex.exec(sql)) !== null) {
@@ -30,10 +30,10 @@ while ((match = regex.exec(sql)) !== null) {
 console.log(`Parsed ${entries.length} entries`);
 
 // Categorize by hierarchy level based on dot-separated code segments
-const provinces: Entry[] = [];
+const provinces: Array<Entry> = [];
 const byProvince = new Map<
   string,
-  { kabupaten: Entry[]; kecamatan: Entry[]; kelurahan: Entry[] }
+  { kabupaten: Array<Entry>; kecamatan: Array<Entry>; kelurahan: Array<Entry> }
 >();
 
 for (const entry of entries) {

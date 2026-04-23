@@ -1,8 +1,7 @@
+import type { DragEndEvent, DraggableAttributes } from "@dnd-kit/core";
 import {
   closestCenter,
   DndContext,
-  type DragEndEvent,
-  type DraggableAttributes,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -57,7 +56,7 @@ export function SortableList({
   onReorder,
   children,
 }: {
-  ids: string[];
+  ids: Array<string>;
   onReorder: (oldIndex: number, newIndex: number) => void;
   children: ReactNode;
 }) {

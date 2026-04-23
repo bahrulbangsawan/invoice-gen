@@ -10,7 +10,8 @@ import { Input } from "@rulisme/ui/ui/input";
 import { Label } from "@rulisme/ui/ui/label";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { countries } from "@/data/countries";
-import { loadProvinceData, type WilayahEntry } from "@/data/wilayah";
+import type { WilayahEntry } from "@/data/wilayah";
+import { loadProvinceData } from "@/data/wilayah";
 import { provinces as provinceList } from "@/data/wilayah/provinces";
 import { useTranslation } from "@/i18n";
 
@@ -43,8 +44,10 @@ export function AddressFields({
 }: AddressFieldsProps) {
   const { t } = useTranslation();
   const isIndonesia = values.country === "Indonesia";
-  const [kabupatenList, setKabupatenList] = useState<WilayahEntry[]>([]);
-  const [allKecamatanList, setAllKecamatanList] = useState<WilayahEntry[]>([]);
+  const [kabupatenList, setKabupatenList] = useState<Array<WilayahEntry>>([]);
+  const [allKecamatanList, setAllKecamatanList] = useState<Array<WilayahEntry>>(
+    []
+  );
   const [loadingKab, setLoadingKab] = useState(false);
 
   // Find the selected province code from the province name

@@ -29,12 +29,14 @@ src/components/
 ### Component Contracts
 
 Each preview template:
+
 - Props: `{ data: CVData }`
 - Must include `id="cv-content"` on root `<article>`
 - Uses Tailwind CSS for styling
 - Returns `null` placeholder when no content exists
 
 Each PDF template:
+
 - Named export: `CVDocument`
 - Props: `{ data: CVData }`
 - Returns `<Document><Page>...</Page></Document>`
@@ -84,17 +86,21 @@ index.tsx
 ## Design Decisions
 
 ### Why switcher components instead of a registry/config?
+
 A simple switch statement is the most readable approach for 4 templates. A registry pattern would add abstraction without benefit at this scale.
 
 ### Why paired files (preview + PDF) instead of a single template?
+
 HTML (Tailwind) and PDF (@react-pdf/renderer) use completely different rendering systems. They cannot share components. Pairing them by name makes the correspondence clear.
 
 ### Why not dynamic imports for previews?
+
 Preview components are small and render synchronously. Dynamic imports would add loading states and complexity for no meaningful bundle savings. PDF templates are already dynamically imported in `handleDownloadPDF`.
 
 ## Style Specifications
 
 ### Harvard
+
 - **Header**: centered, name 20px bold, contact below in smaller text
 - **Colors**: section headers #1a4f7c (blue), body text #333
 - **Section headers**: centered, uppercase, with horizontal rules above and below
@@ -102,6 +108,7 @@ Preview components are small and render synchronously. Dynamic imports would add
 - **Spacing**: tighter than Basic, more content per page
 
 ### Simple
+
 - **Header**: centered, name 20px bold, contact with bullet separators
 - **Colors**: section headers #1a4f7c (blue), body text #333
 - **Section headers**: left-aligned, normal case (not uppercase), bottom border only
@@ -109,6 +116,7 @@ Preview components are small and render synchronously. Dynamic imports would add
 - **Spacing**: clean, moderate whitespace
 
 ### Standard
+
 - **Header**: two-column — name+title left, contact right-aligned
 - **Colors**: neutral palette like Basic (#171717, #737373)
 - **Section headers**: left-aligned, not uppercase, bottom border

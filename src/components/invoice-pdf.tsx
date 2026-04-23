@@ -14,7 +14,8 @@ import {
   calcTotal,
   formatCurrency,
 } from "@/components/invoice-form";
-import { getT, type Locale } from "@/i18n";
+import type { Locale } from "@/i18n";
+import { getT } from "@/i18n";
 
 // ── Date formatting ───────────────────────────────────────
 

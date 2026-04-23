@@ -8,12 +8,12 @@
 
 ## Test Summary
 
-| # | Test | Result |
-|---|------|--------|
-| 1 | Line Items fields on same row | PASS |
-| 2 | Period picker popover opens | PASS |
-| 3 | Date range selection works | FAIL |
-| 4 | Console errors | FAIL (critical bug found) |
+| #   | Test                          | Result                    |
+| --- | ----------------------------- | ------------------------- |
+| 1   | Line Items fields on same row | PASS                      |
+| 2   | Period picker popover opens   | PASS                      |
+| 3   | Date range selection works    | FAIL                      |
+| 4   | Console errors                | FAIL (critical bug found) |
 
 ---
 
@@ -22,12 +22,14 @@
 **Scenario:** Check that Period, Qty, Unit Price, and Amount fields appear on the same row.
 
 **Steps:**
+
 1. Opened http://localhost:5004/
 2. Clicked "Add Item" in the Line Items section
 3. Expanded "Item 1"
 4. Inspected the layout
 
 **Result:** The fields are arranged correctly in a single row using CSS Grid:
+
 - Layout uses `grid grid-cols-[1fr_auto_auto_auto] items-end gap-3`
 - **Period** (1fr - flexible width) | **Qty** (auto) | **Unit Price** (auto) | **Amount** (auto, disabled)
 - Description field is above on its own full-width row
@@ -41,10 +43,12 @@
 **Scenario:** Click the Period field and verify a date range picker popover opens.
 
 **Steps:**
+
 1. Clicked the "Select period..." button
 2. Observed the popover content
 
 **Result:** A popover opens successfully with:
+
 - Filter type tabs: "is", "before", "after", "between" (default: "between")
 - Period type toggle: "Day" (selected by default)
 - Full calendar for March 2026
@@ -61,6 +65,7 @@
 **Scenario:** Select a date range by clicking two dates in the calendar.
 
 **Steps:**
+
 1. Opened the period picker (popover opens in "between" mode)
 2. Clicked March 10, 2026 (start date)
 3. Clicked March 20, 2026 (end date)
@@ -68,6 +73,7 @@
 **Expected:** Days 10-20 should highlight as a range, and the Period button should update to show "Mar 10-Mar 20, 2026".
 
 **Actual:**
+
 - No visible range highlighting between the two selected dates
 - The trigger button text remains "Select period..." (never updates)
 - The popover stays open indefinitely (no auto-close after range completion)
@@ -75,6 +81,7 @@
 
 **Root Cause Analysis:**
 The issue appears to be in the data flow between `DateSelector` and `PeriodRangePicker`. When a day is clicked:
+
 1. `handleDayClick` in `date-selector.tsx:362` sets `selectedDate` / `selectedEndDate` state
 2. The `useEffect` at line 501-503 fires `onChange(currentValue)` when `currentValue` changes
 3. `PeriodRangePicker.handleChange` calls `setSelectorValue(val)` and `onChange(formatPeriod(val))`
@@ -83,6 +90,7 @@ The issue appears to be in the data flow between `DateSelector` and `PeriodRange
 6. This can create a feedback loop where Date objects are recreated on every render
 
 **Files involved:**
+
 - `/src/components/reui/date-selector.tsx` (lines 362-382, 477-492, 501-503)
 - `/src/components/form/period-range-picker.tsx` (lines 132-135, 137-147)
 
@@ -97,6 +105,7 @@ The issue appears to be in the data flow between `DateSelector` and `PeriodRange
 ### Bug 1: Maximum Update Depth Exceeded (CRITICAL)
 
 **Error:**
+
 ```
 Error: Maximum update depth exceeded. This can happen when a component repeatedly
 calls setState inside componentWillUpdate or componentDidUpdate. React limits the
@@ -106,6 +115,7 @@ number of nested updates to prevent infinite loops.
 **How to reproduce:** Trigger a `.click()` on a calendar day button (e.g., via JavaScript `document.querySelector('button[data-day="3/10/2026"]').click()`). The app crashes entirely, showing "Something went wrong!" error screen.
 
 **Stack trace points to:**
+
 - `setRef` in `chunk-4ZTLQCY3.js:70` (a base-ui or radix dependency)
 - `dispatchSetState` in `react-dom_client.js:6803`
 
@@ -141,7 +151,7 @@ The `useEffect` in `date-selector.tsx` at lines 501-503 that fires `onChange` on
 ```tsx
 // CURRENT (problematic):
 useEffect(() => {
-    onChange?.(currentValue)
+  onChange?.(currentValue)
 }, [currentValue, onChange])
 
 // This creates a bidirectional sync loop when the parent
@@ -149,6 +159,7 @@ useEffect(() => {
 ```
 
 Suggested approaches:
+
 1. Remove the `useEffect`-based onChange and only call `onChange` from explicit user actions (handleDayClick, handlePeriodSelect, handleYearSelect)
 2. Add a ref-based guard to prevent re-triggering onChange when the value was just set from the parent
 3. Use a "controlled vs uncontrolled" pattern with a stable value comparison to break the loop
@@ -161,9 +172,9 @@ The calendar does not show range highlighting (`data-range-start`, `data-range-e
 
 ## Screenshots Index
 
-| File | Description |
-|------|-------------|
-| `line-items-form.png` | Line items section with Period, Qty, Unit Price, Amount on same row |
-| `period-picker-open.png` | Date range picker popover opened with March 2026 calendar |
-| `period-picker-range-selected.png` | Calendar after clicking two dates (no range highlight visible) |
-| `error-state.png` | App crash screen showing "Maximum update depth exceeded" |
+| File                               | Description                                                         |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| `line-items-form.png`              | Line items section with Period, Qty, Unit Price, Amount on same row |
+| `period-picker-open.png`           | Date range picker popover opened with March 2026 calendar           |
+| `period-picker-range-selected.png` | Calendar after clicking two dates (no range highlight visible)      |
+| `error-state.png`                  | App crash screen showing "Maximum update depth exceeded"            |

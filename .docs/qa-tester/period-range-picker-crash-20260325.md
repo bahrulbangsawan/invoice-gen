@@ -16,24 +16,32 @@ Clicking the Period date range picker button ("Feb 23-Mar 22, 2026") in an expan
 ## Test Scenarios
 
 ### Test 1: Page Load - Console Errors
+
 **Status:** PASS
+
 - Page loads without errors
 - Only non-critical messages: React DevTools info, React Grab version warning
 
 ### Test 2: Load Sample Invoice
+
 **Status:** PASS
+
 - "Load Sample Invoice" button populates all form fields
 - Line items appear correctly (4 items)
 - No console errors
 
 ### Test 3: Expand Line Item
+
 **Status:** PASS
+
 - Clicking a line item accordion expands it
 - Shows: Description, Period button ("Feb 23-Mar 22, 2026"), Quantity, Rate, Amount
 - No console errors
 
 ### Test 4: Click Period Date Range Picker Button
+
 **Status:** FAIL - CRITICAL
+
 - Clicking the "Feb 23-Mar 22, 2026" button crashes the entire application
 - Error: "Maximum update depth exceeded"
 - Full error message: "Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops."
@@ -41,11 +49,15 @@ Clicking the Period date range picker button ("Feb 23-Mar 22, 2026") in an expan
 - All form data is lost (cannot be recovered without reloading)
 
 ### Test 5: Select Date Range
+
 **Status:** BLOCKED
+
 - Cannot test date selection because the popover never opens (crash occurs first)
 
 ### Test 6: Verify Selected Range in Button Text
+
 **Status:** BLOCKED
+
 - Cannot test because of the crash in Test 4
 
 ---
@@ -53,6 +65,7 @@ Clicking the Period date range picker button ("Feb 23-Mar 22, 2026") in an expan
 ## Error Details
 
 ### Error Message
+
 ```
 Maximum update depth exceeded. This can happen when a component repeatedly calls setState
 inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates
@@ -60,6 +73,7 @@ to prevent infinite loops.
 ```
 
 ### Stack Trace (from console)
+
 ```
 at getRootForUpdatedFiber (react-dom_client.js:3526:128)
 at enqueueConcurrentHookUpdate (react-dom_client.js:3510:16)
@@ -74,6 +88,7 @@ at chunk-4ZTLQCY3.js:79:23
 ```
 
 ### Affected Files
+
 - `/src/components/reui/date-selector.tsx` (lines 477-503) - Root cause
 - `/src/components/form/period-range-picker.tsx` - Consumer component
 
@@ -84,6 +99,7 @@ at chunk-4ZTLQCY3.js:79:23
 The infinite update loop is caused by the interaction between two `useEffect` hooks in the `useDateSelector` hook inside `date-selector.tsx`:
 
 **Effect 1 (lines 477-492):** Syncs external `value` prop to internal state
+
 ```typescript
 useEffect(() => {
   if (value) {
@@ -97,6 +113,7 @@ useEffect(() => {
 ```
 
 **Effect 2 (lines 501-503):** Fires onChange whenever internal state changes
+
 ```typescript
 useEffect(() => {
   onChange?.(currentValue)
@@ -104,6 +121,7 @@ useEffect(() => {
 ```
 
 **The cycle:**
+
 1. Parent (PeriodRangePicker) passes `value` prop (parsed Date objects)
 2. Effect 1 syncs value to internal state (multiple setState calls)
 3. Internal state changes cause `currentValue` (useMemo) to recalculate

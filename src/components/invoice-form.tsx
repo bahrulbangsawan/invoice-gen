@@ -73,7 +73,7 @@ export interface InvoiceLineItem {
   qty: number;
   unitPrice: number;
   amount: number;
-  subItems: InvoiceSubItem[];
+  subItems: Array<InvoiceSubItem>;
 }
 
 export interface InvoiceAdjustment {
@@ -98,9 +98,9 @@ export interface InvoiceData {
   accentColor: string;
   from: SenderInfo;
   billTo: RecipientInfo;
-  items: InvoiceLineItem[];
-  adjustments: InvoiceAdjustment[];
-  customFields: InvoiceCustomField[];
+  items: Array<InvoiceLineItem>;
+  adjustments: Array<InvoiceAdjustment>;
+  customFields: Array<InvoiceCustomField>;
   notes: string;
   taxRate: number;
 }
@@ -141,7 +141,7 @@ export function formatCurrency(amount: number, currency: string): string {
 
 // ── Calculations ───────────────────────────────────────────
 
-export function calcSubtotal(items: InvoiceLineItem[]): number {
+export function calcSubtotal(items: Array<InvoiceLineItem>): number {
   return items.reduce((sum, item) => sum + item.amount, 0);
 }
 
@@ -159,7 +159,7 @@ export function calcAdjustmentAmount(
 }
 
 export function calcAdjustmentsTotal(
-  adjustments: InvoiceAdjustment[],
+  adjustments: Array<InvoiceAdjustment>,
   subtotal: number
 ): number {
   return adjustments.reduce(
@@ -169,9 +169,9 @@ export function calcAdjustmentsTotal(
 }
 
 export function calcTotal(
-  items: InvoiceLineItem[],
+  items: Array<InvoiceLineItem>,
   taxRate: number,
-  adjustments: InvoiceAdjustment[] = []
+  adjustments: Array<InvoiceAdjustment> = []
 ): number {
   const subtotal = calcSubtotal(items);
   const tax = calcTax(subtotal, taxRate);
@@ -250,7 +250,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
     });
   }
 
-  function reorderItems(items: InvoiceLineItem[]) {
+  function reorderItems(items: Array<InvoiceLineItem>) {
     onChange({ ...data, items });
   }
 

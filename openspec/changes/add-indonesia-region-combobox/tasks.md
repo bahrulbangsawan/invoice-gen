@@ -19,7 +19,7 @@
 
 ## 3. Integration — Wire AddressFields into invoice form
 
-- [x] 3.1 Update `SenderInfo` and `RecipientInfo` interfaces to include optional `district` and `village` fields if kecamatan/kelurahan support is added — *Deferred: keeping v1 at Province → Kabupaten level*
+- [x] 3.1 Update `SenderInfo` and `RecipientInfo` interfaces to include optional `district` and `village` fields if kecamatan/kelurahan support is added — _Deferred: keeping v1 at Province → Kabupaten level_
 - [x] 3.2 Replace the From section address grid with `<AddressFields>` component
 - [x] 3.3 Replace the Bill To section address grid with `<AddressFields>` component (mapped `stateRegion` → `state`)
 - [x] 3.4 Verify both sections work independently (selecting Indonesia in From doesn't affect Bill To)

@@ -4,9 +4,9 @@ export interface WilayahEntry {
 }
 
 export interface ProvinceData {
-  kabupaten: WilayahEntry[];
-  kecamatan: WilayahEntry[];
-  kelurahan: WilayahEntry[];
+  kabupaten: Array<WilayahEntry>;
+  kecamatan: Array<WilayahEntry>;
+  kelurahan: Array<WilayahEntry>;
 }
 
 const cache = new Map<string, ProvinceData>();

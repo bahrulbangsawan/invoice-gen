@@ -21,9 +21,8 @@ import {
   CornerUpRightIcon,
   XIcon,
 } from "lucide-react";
+import type { ChangeEvent, ComponentProps } from "react";
 import {
-  type ChangeEvent,
-  type ComponentProps,
   createContext,
   useCallback,
   useContext,
@@ -57,15 +56,15 @@ export interface DateSelectorI18nConfig {
     year: string;
   };
   // Months
-  months: string[];
-  monthsShort: string[];
+  months: Array<string>;
+  monthsShort: Array<string>;
   // Quarters
-  quarters: string[];
+  quarters: Array<string>;
   // Half years
-  halfYears: string[];
+  halfYears: Array<string>;
   // Weekdays
-  weekdays: string[];
-  weekdaysShort: string[];
+  weekdays: Array<string>;
+  weekdaysShort: Array<string>;
   // Placeholders
   placeholder: string;
   rangePlaceholder: string;
@@ -250,7 +249,7 @@ interface UseDateSelectorOptions {
   baseYear?: number;
   minYear?: number;
   maxYear?: number;
-  periodTypes?: DateSelectorPeriodType[];
+  periodTypes?: Array<DateSelectorPeriodType>;
 }
 
 export function useDateSelector({
@@ -638,7 +637,7 @@ function DateSelectorFilterToggle({
 interface DateSelectorDateSelectorPeriodTabsProps {
   value: DateSelectorPeriodType;
   onChange: (value: DateSelectorPeriodType) => void;
-  periodTypes?: DateSelectorPeriodType[];
+  periodTypes?: Array<DateSelectorPeriodType>;
   className?: string;
   calendarMonth?: Date;
   onMonthChange?: (date: Date) => void;
@@ -656,7 +655,7 @@ function DateSelectorPeriodTabs({
 }: DateSelectorDateSelectorPeriodTabsProps) {
   const { i18n } = useDateSelectorContext();
 
-  const tabs: { value: DateSelectorPeriodType; label: string }[] = [
+  const tabs: Array<{ value: DateSelectorPeriodType; label: string }> = [
     { value: "day", label: i18n.periodTypes.day },
     { value: "month", label: i18n.periodTypes.month },
     { value: "quarter", label: i18n.periodTypes.quarter },
@@ -852,7 +851,7 @@ function DateSelectorDayPicker({
           mode="range"
           month={currentMonth}
           numberOfMonths={isMobile ? 1 : showTwoMonths ? 2 : 1}
-          onSelect={handleSelect as (range: DateRange | undefined) => void}
+          onSelect={handleSelect}
           selected={selected as DateRange | undefined}
           showOutsideDays={true}
           weekStartsOn={weekStartsOn}
@@ -872,7 +871,7 @@ function DateSelectorDayPicker({
           mode="single"
           month={currentMonth}
           numberOfMonths={isMobile ? 1 : showTwoMonths ? 2 : 1}
-          onSelect={handleSelect as (date: Date | undefined) => void}
+          onSelect={handleSelect}
           selected={selected as Date | undefined}
           showOutsideDays={true}
           weekStartsOn={weekStartsOn}
@@ -883,8 +882,8 @@ function DateSelectorDayPicker({
 }
 
 interface DateSelectorDateSelectorPeriodGridProps {
-  years: number[];
-  items: string[];
+  years: Array<number>;
+  items: Array<string>;
   selectedYear?: number;
   selectedValue?: number;
   rangeStart?: { year: number; value: number };
@@ -959,7 +958,7 @@ function DateSelectorPeriodGrid({
 }
 
 interface DateSelectorYearListProps {
-  years: number[];
+  years: Array<number>;
   selectedYear?: number;
   rangeStart?: { year: number; value: number };
   rangeEnd?: { year: number; value: number };
@@ -1013,7 +1012,7 @@ export interface DateSelectorProps {
   value?: DateSelectorValue;
   onChange?: (value: DateSelectorValue) => void;
   allowRange?: boolean;
-  periodTypes?: DateSelectorPeriodType[];
+  periodTypes?: Array<DateSelectorPeriodType>;
   defaultPeriodType?: DateSelectorPeriodType;
   defaultFilterType?: DateSelectorFilterType;
   presetMode?: DateSelectorFilterType;
@@ -1028,7 +1027,7 @@ export interface DateSelectorProps {
   i18n?: Partial<DateSelectorI18nConfig>;
   inputHint?: string;
   dayDateFormat?: string;
-  dayDateFormats?: string[];
+  dayDateFormats?: Array<string>;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 

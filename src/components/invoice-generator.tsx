@@ -1,3 +1,10 @@
+import { Button } from "@rulisme/ui/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@rulisme/ui/ui/dropdown-menu";
 import {
   ChevronDown,
   Download,
@@ -16,24 +23,17 @@ import {
   useRef,
   useState,
 } from "react";
-import { type InvoiceData, InvoiceForm } from "@/components/invoice-form";
+import type { InvoiceData } from "@/components/invoice-form";
+import { InvoiceForm } from "@/components/invoice-form";
+import sampleData from "@/data/sample-invoice.json";
+import { useTranslation } from "@/i18n";
+import { LanguageSwitcher } from "@/i18n/components/language-switcher";
 
 const InvoicePreview = lazy(() =>
   import("@/components/invoice-preview").then((m) => ({
     default: m.InvoicePreview,
   }))
 );
-
-import { Button } from "@rulisme/ui/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@rulisme/ui/ui/dropdown-menu";
-import sampleData from "@/data/sample-invoice.json";
-import { useTranslation } from "@/i18n";
-import { LanguageSwitcher } from "@/i18n/components/language-switcher";
 
 // Preload PDF renderer on idle so first download is instant
 function preloadPdfRenderer() {
