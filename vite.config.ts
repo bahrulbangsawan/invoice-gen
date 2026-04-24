@@ -23,11 +23,6 @@ const config = defineConfig({
       output: {
         manualChunks: {
           "vendor-router": ["@tanstack/react-router", "@tanstack/react-start"],
-          "vendor-assistant": [
-            "@assistant-ui/react",
-            "@assistant-ui/react-markdown",
-            "remark-gfm",
-          ],
           "vendor-icons": ["lucide-react"],
         },
       },
