@@ -11,7 +11,17 @@
     "generating": "Membuat...",
     "downloadPdf": "Unduh sebagai PDF",
     "downloadJson": "Unduh sebagai JSON",
-    "clearAll": "Hapus Semua"
+    "clearAll": "Hapus Semua",
+    "mcpGuide": "Panduan MCP"
+  },
+  "mcp": {
+    "title": "Hubungkan melalui MCP",
+    "description": "Kelola faktur Anda dengan asisten AI apa pun. Minta AI \"buat faktur\" atau \"perbarui item\". Untuk menyimpan faktur dan mengaksesnya dari perangkat mana pun, buat token di mcp.bahrul.me.",
+    "step1": "Kunjungi mcp.bahrul.me dan masuk untuk membuat token MCP pribadi Anda — diperlukan untuk menyimpan faktur ke cloud.",
+    "step2": "Ikuti panduan spesifik klien di halaman panduan — Claude Code, Cursor, Codex, Windsurf, Zed, dan lainnya.",
+    "step3": "Tempelkan URL pribadi Anda ke klien dan mulai ulang.",
+    "cta": "Dapatkan token MCP di mcp.bahrul.me",
+    "privacy": "URL MCP Anda bersifat pribadi — jangan dibagikan."
   },
   "form": {
     "invoiceDetails": "Detail Faktur",

@@ -1,11 +1,21 @@
 import { Button } from "@rulisme/ui/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@rulisme/ui/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@rulisme/ui/ui/dropdown-menu";
 import {
+  ArrowUpRight,
+  Cable,
   ChevronDown,
   Download,
   FileJson,
@@ -59,6 +69,7 @@ function preloadPdfRenderer() {
 }
 
 const STORAGE_KEY = "invoice-data";
+const MCP_URL = "https://mcp.bahrul.me";
 
 const initialData: InvoiceData = {
   invoiceNumber: "",
@@ -292,6 +303,53 @@ export function InvoiceGenerator() {
         <div className="w-full border-border border-b md:h-svh md:w-1/2 md:overflow-y-auto md:border-r md:border-b-0">
           <div className="sticky top-0 z-10 flex items-center justify-end gap-1.5 border-border border-b bg-background px-3 py-2 sm:gap-2 sm:px-6 sm:py-3">
             <LanguageSwitcher />
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="h-8 sm:h-9" size="sm" variant="outline">
+                  <Cable className="size-4 shrink-0" />
+                  <span className="hidden sm:inline">
+                    {t("toolbar.mcpGuide")}
+                  </span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t("mcp.title")}</DialogTitle>
+                  <DialogDescription>{t("mcp.description")}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <ol className="space-y-2 text-muted-foreground text-xs">
+                    <li className="flex gap-2">
+                      <span className="mt-px flex size-4 shrink-0 items-center justify-center rounded-full bg-muted font-semibold text-[10px] text-foreground">
+                        1
+                      </span>
+                      <span>{t("mcp.step1")}</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-px flex size-4 shrink-0 items-center justify-center rounded-full bg-muted font-semibold text-[10px] text-foreground">
+                        2
+                      </span>
+                      <span>{t("mcp.step2")}</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-px flex size-4 shrink-0 items-center justify-center rounded-full bg-muted font-semibold text-[10px] text-foreground">
+                        3
+                      </span>
+                      <span>{t("mcp.step3")}</span>
+                    </li>
+                  </ol>
+                  <Button asChild className="w-full" size="lg">
+                    <a href={MCP_URL} rel="noopener" target="_blank">
+                      {t("mcp.cta")}
+                      <ArrowUpRight className="size-4" />
+                    </a>
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t("mcp.privacy")}
+                  </p>
+                </div>
+              </DialogContent>
+            </Dialog>
             <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
               <Button
                 className="h-8 sm:h-9"

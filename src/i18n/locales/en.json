@@ -11,7 +11,17 @@
     "generating": "Generating...",
     "downloadPdf": "Download as PDF",
     "downloadJson": "Download as JSON",
-    "clearAll": "Clear All"
+    "clearAll": "Clear All",
+    "mcpGuide": "MCP Guide"
+  },
+  "mcp": {
+    "title": "Connect via MCP",
+    "description": "Manage your invoices with any AI assistant. Ask it to \"create an invoice\" or \"update line items\". To save your invoices and access them from any device, generate a token at mcp.bahrul.me.",
+    "step1": "Visit mcp.bahrul.me and sign in to generate your personal MCP token — required to save your invoices to the cloud.",
+    "step2": "Follow the client-specific setup on the guides page — Claude Code, Cursor, Codex, Windsurf, Zed, and more.",
+    "step3": "Paste your personal URL into your client and restart it.",
+    "cta": "Get my MCP token at mcp.bahrul.me",
+    "privacy": "Your MCP URL is personal — keep it private."
   },
   "form": {
     "invoiceDetails": "Invoice Details",
