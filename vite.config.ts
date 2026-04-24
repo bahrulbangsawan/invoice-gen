@@ -8,7 +8,7 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
   plugins: [
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    cloudflare({ viteEnvironment: { name: "ssr" }, inspectorPort: false }),
     devtools(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
