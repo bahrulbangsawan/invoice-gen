@@ -4,26 +4,39 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   plugins: [
-    cloudflare({ viteEnvironment: { name: "ssr" }, inspectorPort: false }),
+    ...(process.env.VITEST
+      ? []
+      : [
+          cloudflare({
+            viteEnvironment: { name: "ssr" },
+            inspectorPort: false,
+          }),
+        ]),
     devtools(),
-    // this is the plugin that enables path aliases
-    viteTsConfigPaths({
-      projects: ["./tsconfig.json"],
-    }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),
   ],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          "vendor-router": ["@tanstack/react-router", "@tanstack/react-start"],
-          "vendor-icons": ["lucide-react"],
+        codeSplitting: {
+          groups: [
+            {
+              name: "vendor-router",
+              test: /node_modules[/\\]@tanstack[/\\](?:react-router|react-start)/,
+            },
+            {
+              name: "vendor-icons",
+              test: /node_modules[/\\]lucide-react/,
+            },
+          ],
         },
       },
     },

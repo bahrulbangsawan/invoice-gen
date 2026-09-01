@@ -13,7 +13,7 @@ The project needs to pivot from a CV/resume builder to an invoice generator whil
 - Remove Markdown export (not applicable to invoices)
 - Remove template style switcher from toolbar (single template only)
 - Update SEO metadata, page title, and JSON-LD schema from CV to Invoice context
-- Rename package from `cv-bahrul` to `invoice-bahrul`
+- Rename package from `cv-bahrul` to `invoice-gen`
 
 ## Impact
 

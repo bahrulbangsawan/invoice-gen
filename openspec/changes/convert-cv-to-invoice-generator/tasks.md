@@ -29,7 +29,7 @@
 - [x] 4.2 Update `src/routes/__root.tsx` — meta tags, title, description, OG tags, JSON-LD schema for Invoice Generator
 - [x] 4.3 Update `src/styles.css` — rename `.cv-page` class to `.invoice-page`
 - [x] 4.4 Delete old CV files: `cv-form.tsx`, `cv-preview.tsx`, `cv-pdf.tsx`, `templates/*.tsx` (8 files), `ai/cv-*.{ts,tsx}` (3 files), `data/sample-cv.json`
-- [x] 4.5 Update `package.json` — rename `cv-bahrul` → `invoice-bahrul`
+- [x] 4.5 Update `package.json` — rename `cv-bahrul` → `invoice-gen`
 
 ## 5. Verification
 

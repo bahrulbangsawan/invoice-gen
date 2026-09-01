@@ -2,7 +2,9 @@
   "meta": {
     "title": "Invoice Generator — Bahrul Bangsawan",
     "description": "Create, preview, and download professional invoices as PDF. Free online invoice generator with real-time preview and AI assistant.",
-    "ogDescription": "Create, preview, and download professional invoices as PDF. Free online invoice generator with real-time preview."
+    "ogDescription": "Create, preview, and download professional invoices as PDF. Free online invoice generator with real-time preview.",
+    "siteName": "Invoice Generator",
+    "ogImageAlt": "Invoice Generator by Bahrul Bangsawan — free online invoice maker with real-time preview"
   },
   "toolbar": {
     "importJson": "Import JSON",
@@ -12,7 +14,21 @@
     "downloadPdf": "Download as PDF",
     "downloadJson": "Download as JSON",
     "clearAll": "Clear All",
-    "mcpGuide": "MCP Guide"
+    "mcp": "MCP"
+  },
+  "theme": {
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode"
+  },
+  "confirm": {
+    "title": "Clear all data?",
+    "description": "This removes everything currently in the form. This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Clear all"
+  },
+  "status": {
+    "saving": "Saving…",
+    "saved": "Saved"
   },
   "mcp": {
     "title": "Connect via MCP",
@@ -123,6 +139,7 @@
     "setupAiAssistant": "Set up AI Assistant",
     "setAccentColor": "Set accent color to {color}",
     "switchLanguage": "Switch language",
+    "downloadInvoice": "Download invoice",
     "skipToContent": "Skip to main content",
     "removeItem": "Remove item",
     "removeSubItem": "Remove sub-item",
@@ -132,5 +149,8 @@
     "dragToReorder": "Drag to reorder",
     "generatingPdf": "Generating PDF, please wait",
     "pdfReady": "PDF generated successfully"
+  },
+  "errors": {
+    "logoProcess": "Couldn't process that image. Try a different file."
   }
 }

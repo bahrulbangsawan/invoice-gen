@@ -20,6 +20,10 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
 
+    /* Incremental type-check cache */
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsc/tsbuildinfo",
+
     /* Linting */
     "skipLibCheck": true,
     "strict": true,
@@ -29,10 +33,8 @@
     "noUncheckedSideEffectImports": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@rulisme/ui/*": ["../../packages/ui/src/*"]
+      "@/*": ["./src/*"]
     }
   }
 }

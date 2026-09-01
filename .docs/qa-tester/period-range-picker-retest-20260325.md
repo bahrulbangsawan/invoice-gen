@@ -76,8 +76,8 @@ No errors detected throughout the entire testing session. Console contained only
 
 ## Files Involved
 
-- `/Users/growthacker/2026/invoice-bahrul/src/components/form/period-range-picker.tsx` - PeriodRangePicker component
-- `/Users/growthacker/2026/invoice-bahrul/src/components/reui/date-selector.tsx` - DateSelector component with useDateSelector hook
+- `/Users/growthacker/2026/invoice-gen/src/components/form/period-range-picker.tsx` - PeriodRangePicker component
+- `/Users/growthacker/2026/invoice-gen/src/components/reui/date-selector.tsx` - DateSelector component with useDateSelector hook
 
 ---
 

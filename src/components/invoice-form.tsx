@@ -1,20 +1,20 @@
-import { FormField } from "@rulisme/ui/form/form-field";
-import { SectionList } from "@rulisme/ui/form/section-list";
-import { Button } from "@rulisme/ui/ui/button";
+import { FormField } from "@/components/form/form-field"
+import { SectionList } from "@/components/form/section-list"
+import { Button } from "@rulisme/ui/ui/button"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@rulisme/ui/ui/collapsible";
-import { Label } from "@rulisme/ui/ui/label";
+} from "@rulisme/ui/ui/collapsible"
+import { Label } from "@rulisme/ui/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@rulisme/ui/ui/select";
-import { Separator } from "@rulisme/ui/ui/separator";
+} from "@rulisme/ui/ui/select"
+import { Separator } from "@rulisme/ui/ui/separator"
 import {
   Building2,
   ChevronDown,
@@ -27,87 +27,41 @@ import {
   Trash2,
   Upload,
   UserRound,
-} from "lucide-react";
-import { AddressFields } from "@/components/form/address-fields";
-import { DatePicker } from "@/components/form/date-picker";
-import { PeriodRangePicker } from "@/components/form/period-range-picker";
-import { useTranslation } from "@/i18n";
+} from "lucide-react"
+import { useState } from "react"
+import { AddressFields } from "@/components/form/address-fields"
+import { DatePicker } from "@/components/form/date-picker"
+import { PeriodRangePicker } from "@/components/form/period-range-picker"
+import type {
+  InvoiceAdjustment,
+  InvoiceData,
+  InvoiceLineItem,
+  InvoiceSubItem,
+  RecipientInfo,
+  SenderInfo,
+} from "@/components/invoice-form-utils"
+import { formatCurrency } from "@/components/invoice-form-utils"
+import { useTranslation } from "@/i18n"
+import { preprocessImage } from "@/lib/preprocess-image"
 
-// ── Types ──────────────────────────────────────────────────
+// Re-export types for consumers that import from this module
+export type {
+  InvoiceAdjustment,
+  InvoiceCustomField,
+  InvoiceData,
+  InvoiceLineItem,
+  InvoiceSubItem,
+  RecipientInfo,
+  SenderInfo,
+} from "@/components/invoice-form-utils"
 
-export interface SenderInfo {
-  companyName: string;
-  address: string;
-  city: string;
-  kecamatan: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  email: string;
-  logoUrl: string;
-}
+// Logos render at ~h-8 in the editor and small in the PDF, so 320px on the long
+// edge stays crisp while keeping the embed tiny. PNG logos keep their alpha.
+const LOGO_MAX_EDGE = 320
 
-export interface RecipientInfo {
-  name: string;
-  address: string;
-  city: string;
-  kecamatan: string;
-  stateRegion: string;
-  postalCode: string;
-  country: string;
-  email: string;
-}
+// ── Currency (internal to this file only) ─────────────────
 
-export interface InvoiceSubItem {
-  id: string;
-  label: string;
-  qty: number;
-  unitPrice: number;
-  amount: number;
-}
-
-export interface InvoiceLineItem {
-  id: string;
-  description: string;
-  period: string;
-  qty: number;
-  unitPrice: number;
-  amount: number;
-  subItems: Array<InvoiceSubItem>;
-}
-
-export interface InvoiceAdjustment {
-  id: string;
-  label: string;
-  type: "add" | "deduct";
-  mode: "percentage" | "fixed";
-  value: number;
-}
-
-export interface InvoiceCustomField {
-  id: string;
-  label: string;
-  value: string;
-}
-
-export interface InvoiceData {
-  invoiceNumber: string;
-  dateOfIssue: string;
-  dateDue: string;
-  currency: string;
-  accentColor: string;
-  from: SenderInfo;
-  billTo: RecipientInfo;
-  items: Array<InvoiceLineItem>;
-  adjustments: Array<InvoiceAdjustment>;
-  customFields: Array<InvoiceCustomField>;
-  notes: string;
-  taxRate: number;
-}
-
-// ── Currency ───────────────────────────────────────────────
-
-export const CURRENCY_OPTIONS = [
+const CURRENCY_OPTIONS = [
   { value: "USD", flag: "🇺🇸", label: "USD — US Dollar" },
   { value: "EUR", flag: "🇪🇺", label: "EUR — Euro" },
   { value: "GBP", flag: "🇬🇧", label: "GBP — British Pound" },
@@ -116,97 +70,38 @@ export const CURRENCY_OPTIONS = [
   { value: "AUD", flag: "🇦🇺", label: "AUD — Australian Dollar" },
   { value: "JPY", flag: "🇯🇵", label: "JPY — Japanese Yen" },
   { value: "MYR", flag: "🇲🇾", label: "MYR — Malaysian Ringgit" },
-] as const;
-
-const CURRENCY_LOCALE: Record<string, string> = {
-  USD: "en-US",
-  EUR: "de-DE",
-  GBP: "en-GB",
-  IDR: "id-ID",
-  SGD: "en-SG",
-  AUD: "en-AU",
-  JPY: "ja-JP",
-  MYR: "ms-MY",
-};
-
-export function formatCurrency(amount: number, currency: string): string {
-  const locale = CURRENCY_LOCALE[currency] ?? "en-US";
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: currency === "JPY" ? 0 : 2,
-    maximumFractionDigits: currency === "JPY" ? 0 : 2,
-  }).format(amount);
-}
-
-// ── Calculations ───────────────────────────────────────────
-
-export function calcSubtotal(items: Array<InvoiceLineItem>): number {
-  return items.reduce((sum, item) => sum + item.amount, 0);
-}
-
-export function calcTax(subtotal: number, taxRate: number): number {
-  return subtotal * (taxRate / 100);
-}
-
-export function calcAdjustmentAmount(
-  adj: InvoiceAdjustment,
-  subtotal: number
-): number {
-  const raw =
-    adj.mode === "percentage" ? subtotal * (adj.value / 100) : adj.value;
-  return adj.type === "deduct" ? -raw : raw;
-}
-
-export function calcAdjustmentsTotal(
-  adjustments: Array<InvoiceAdjustment>,
-  subtotal: number
-): number {
-  return adjustments.reduce(
-    (sum, adj) => sum + calcAdjustmentAmount(adj, subtotal),
-    0
-  );
-}
-
-export function calcTotal(
-  items: Array<InvoiceLineItem>,
-  taxRate: number,
-  adjustments: Array<InvoiceAdjustment> = []
-): number {
-  const subtotal = calcSubtotal(items);
-  const tax = calcTax(subtotal, taxRate);
-  const adj = calcAdjustmentsTotal(adjustments, subtotal);
-  return subtotal + tax + adj;
-}
+] as const
 
 // ── Form Component ─────────────────────────────────────────
 
 interface InvoiceFormProps {
-  data: InvoiceData;
-  onChange: (data: InvoiceData) => void;
+  data: InvoiceData
+  onChange: (data: InvoiceData) => void
 }
 
 export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
+  const [logoError, setLogoError] = useState<string | undefined>(undefined)
+
   function updateField<K extends keyof InvoiceData>(
     field: K,
     value: InvoiceData[K]
   ) {
-    onChange({ ...data, [field]: value });
+    onChange({ ...data, [field]: value })
   }
 
   function updateFrom(field: keyof SenderInfo, value: string) {
-    onChange({ ...data, from: { ...data.from, [field]: value } });
+    onChange({ ...data, from: { ...data.from, [field]: value } })
   }
 
   function updateBillTo(field: keyof RecipientInfo, value: string) {
-    onChange({ ...data, billTo: { ...data.billTo, [field]: value } });
+    onChange({ ...data, billTo: { ...data.billTo, [field]: value } })
   }
 
   // ── Line items ──
 
   function addItem() {
-    const id = crypto.randomUUID();
+    const id = crypto.randomUUID()
     onChange({
       ...data,
       items: [
@@ -221,11 +116,11 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           subItems: [],
         },
       ],
-    });
+    })
   }
 
   function removeItem(id: string) {
-    onChange({ ...data, items: data.items.filter((i) => i.id !== id) });
+    onChange({ ...data, items: data.items.filter((i) => i.id !== id) })
   }
 
   function updateItem(
@@ -237,21 +132,21 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       ...data,
       items: data.items.map((item) => {
         if (item.id !== id) {
-          return item;
+          return item
         }
-        const updated = { ...item, [field]: value };
+        const updated = { ...item, [field]: value }
         if (field === "qty" || field === "unitPrice") {
-          const ownAmount = Number(updated.qty) * Number(updated.unitPrice);
-          const subTotal = updated.subItems.reduce((s, si) => s + si.amount, 0);
-          updated.amount = ownAmount + subTotal;
+          const ownAmount = Number(updated.qty) * Number(updated.unitPrice)
+          const subTotal = updated.subItems.reduce((s, si) => s + si.amount, 0)
+          updated.amount = ownAmount + subTotal
         }
-        return updated;
+        return updated
       }),
-    });
+    })
   }
 
-  function reorderItems(items: Array<InvoiceLineItem>) {
-    onChange({ ...data, items });
+  function reorderItems(items: InvoiceLineItem[]) {
+    onChange({ ...data, items })
   }
 
   // ── Sub-items ──
@@ -261,7 +156,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       ...data,
       items: data.items.map((item) => {
         if (item.id !== itemId) {
-          return item;
+          return item
         }
         return {
           ...item,
@@ -275,9 +170,9 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               amount: 0,
             },
           ],
-        };
+        }
       }),
-    });
+    })
   }
 
   function removeSubItem(itemId: string, subId: string) {
@@ -285,14 +180,14 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       ...data,
       items: data.items.map((item) => {
         if (item.id !== itemId) {
-          return item;
+          return item
         }
-        const newSubItems = item.subItems.filter((s) => s.id !== subId);
-        const ownAmount = Number(item.qty) * Number(item.unitPrice);
-        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0);
-        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal };
+        const newSubItems = item.subItems.filter((s) => s.id !== subId)
+        const ownAmount = Number(item.qty) * Number(item.unitPrice)
+        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0)
+        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal }
       }),
-    });
+    })
   }
 
   function updateSubItem(
@@ -305,23 +200,23 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       ...data,
       items: data.items.map((item) => {
         if (item.id !== itemId) {
-          return item;
+          return item
         }
         const newSubItems = item.subItems.map((sub) => {
           if (sub.id !== subId) {
-            return sub;
+            return sub
           }
-          const updated = { ...sub, [field]: value };
+          const updated = { ...sub, [field]: value }
           if (field === "qty" || field === "unitPrice") {
-            updated.amount = Number(updated.qty) * Number(updated.unitPrice);
+            updated.amount = Number(updated.qty) * Number(updated.unitPrice)
           }
-          return updated;
-        });
-        const ownAmount = Number(item.qty) * Number(item.unitPrice);
-        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0);
-        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal };
+          return updated
+        })
+        const ownAmount = Number(item.qty) * Number(item.unitPrice)
+        const subTotal = newSubItems.reduce((s, si) => s + si.amount, 0)
+        return { ...item, subItems: newSubItems, amount: ownAmount + subTotal }
       }),
-    });
+    })
   }
 
   // ── Adjustments ──
@@ -339,14 +234,14 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
           value: 0,
         },
       ],
-    });
+    })
   }
 
   function removeAdjustment(id: string) {
     onChange({
       ...data,
       adjustments: data.adjustments.filter((a) => a.id !== id),
-    });
+    })
   }
 
   function updateAdjustment(
@@ -359,7 +254,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       adjustments: data.adjustments.map((a) =>
         a.id === id ? { ...a, [field]: value } : a
       ),
-    });
+    })
   }
 
   // ── Custom fields ──
@@ -371,14 +266,14 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         ...data.customFields,
         { id: crypto.randomUUID(), label: "", value: "" },
       ],
-    });
+    })
   }
 
   function removeCustomField(id: string) {
     onChange({
       ...data,
       customFields: data.customFields.filter((f) => f.id !== id),
-    });
+    })
   }
 
   function updateCustomField(
@@ -391,29 +286,31 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
       customFields: data.customFields.map((f) =>
         f.id === id ? { ...f, [field]: value } : f
       ),
-    });
+    })
   }
 
   // ── Logo upload ──
 
-  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
     if (!file) {
-      return;
+      return
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      updateFrom("logoUrl", ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
+    try {
+      const logoUrl = await preprocessImage(file, { maxEdge: LOGO_MAX_EDGE })
+      setLogoError(undefined)
+      updateFrom("logoUrl", logoUrl)
+    } catch {
+      setLogoError(t("errors.logoProcess"))
+    }
   }
 
   return (
     <div className="space-y-6">
       {/* ── Invoice Details ── */}
       <section>
-        <h2 className="flex items-center gap-2 font-medium text-sm">
+        <h2 className="flex items-center gap-2 text-body-sm font-medium">
           <FileText className="size-4 text-muted-foreground" />{" "}
           {t("form.invoiceDetails")}
         </h2>
@@ -436,8 +333,8 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                     {(() => {
                       const c = CURRENCY_OPTIONS.find(
                         (o) => o.value === data.currency
-                      );
-                      return c ? `${c.flag} ${c.value}` : data.currency;
+                      )
+                      return c ? `${c.flag} ${c.value}` : data.currency
                     })()}
                   </SelectValue>
                 </SelectTrigger>
@@ -469,10 +366,16 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
             </Label>
             <div className="flex items-center gap-1.5">
               <label
-                className="flex size-8 shrink-0 cursor-pointer rounded border border-input shadow-sm"
+                aria-label={t("a11y.setAccentColor", {
+                  color: data.accentColor,
+                })}
+                className="flex size-8 shrink-0 cursor-pointer rounded border border-input"
                 style={{ backgroundColor: data.accentColor }}
               >
                 <input
+                  aria-label={t("a11y.setAccentColor", {
+                    color: data.accentColor,
+                  })}
                   className="sr-only"
                   onChange={(e) => updateField("accentColor", e.target.value)}
                   type="color"
@@ -500,7 +403,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── From (Sender) ── */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between font-medium text-sm [&[data-state=open]>.chevron]:rotate-180">
+        <CollapsibleTrigger className="flex w-full items-center justify-between text-body-sm font-medium [&[data-state=open]>.chevron]:rotate-180">
           <span className="flex items-center gap-2">
             <Building2 className="size-4 text-muted-foreground" />{" "}
             {t("form.fromSection")}
@@ -562,8 +465,11 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                   {data.from.logoUrl ? t("form.change") : t("form.upload")}
                   <input
                     accept="image/*"
+                    aria-label={
+                      data.from.logoUrl ? t("form.change") : t("form.upload")
+                    }
                     className="hidden"
-                    onChange={handleLogoUpload}
+                    onChange={(e) => void handleLogoUpload(e)}
                     type="file"
                   />
                 </label>
@@ -581,6 +487,9 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
                   </Button>
                 )}
               </div>
+              {logoError && (
+                <p className="text-xs text-destructive">{logoError}</p>
+              )}
             </div>
           </div>
         </CollapsibleContent>
@@ -590,7 +499,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Bill To ── */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between font-medium text-sm [&[data-state=open]>.chevron]:rotate-180">
+        <CollapsibleTrigger className="flex w-full items-center justify-between text-body-sm font-medium [&[data-state=open]>.chevron]:rotate-180">
           <span className="flex items-center gap-2">
             <UserRound className="size-4 text-muted-foreground" />{" "}
             {t("form.billToSection")}
@@ -626,15 +535,15 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
               cityPlaceholder={t("placeholders.cityRecipient")}
               onChange={(updates) => {
                 // Map AddressValues keys to RecipientInfo keys
-                const mapped: Partial<RecipientInfo> = {};
+                const mapped: Partial<RecipientInfo> = {}
                 for (const [key, val] of Object.entries(updates)) {
                   if (key === "state") {
-                    mapped.stateRegion = val;
+                    mapped.stateRegion = val
                   } else {
-                    (mapped as Record<string, string>)[key] = val;
+                    ;(mapped as Record<string, string>)[key] = val
                   }
                 }
-                onChange({ ...data, billTo: { ...data.billTo, ...mapped } });
+                onChange({ ...data, billTo: { ...data.billTo, ...mapped } })
               }}
               stateLabel={t("form.stateRegion")}
               statePlaceholder={t("placeholders.stateRecipient")}
@@ -701,8 +610,8 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
             {/* Sub-items */}
             {item.subItems.length > 0 && (
-              <div className="ml-2 space-y-2 border-muted border-l-2 pl-2 sm:ml-4 sm:pl-4">
-                <p className="font-medium text-muted-foreground text-xs">
+              <div className="ml-2 space-y-2 border-l-2 border-muted pl-2 sm:ml-4 sm:pl-4">
+                <p className="text-xs font-medium text-muted-foreground">
                   {t("form.subItems")}
                 </p>
                 {item.subItems.map((sub) => (
@@ -776,11 +685,11 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Adjustments ── */}
       <section>
-        <h2 className="flex items-center gap-2 font-medium text-sm">
+        <h2 className="flex items-center gap-2 text-body-sm font-medium">
           <SlidersHorizontal className="size-4 text-muted-foreground" />{" "}
           {t("form.adjustments")}
         </h2>
-        <p className="mt-1 text-muted-foreground text-xs">
+        <p className="mt-1 text-xs text-muted-foreground">
           {t("form.adjustmentsDesc")}
         </p>
         <div className="mt-3 space-y-3">
@@ -869,7 +778,7 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
 
       {/* ── Notes & Settings ── */}
       <section>
-        <h2 className="flex items-center gap-2 font-medium text-sm">
+        <h2 className="flex items-center gap-2 text-body-sm font-medium">
           <StickyNote className="size-4 text-muted-foreground" />{" "}
           {t("form.notesSettings")}
         </h2>
@@ -929,5 +838,5 @@ export function InvoiceForm({ data, onChange }: InvoiceFormProps) {
         </div>
       </section>
     </div>
-  );
+  )
 }

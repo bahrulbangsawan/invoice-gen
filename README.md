@@ -1,4 +1,4 @@
-# Invoice Bahrul
+# invoice-gen
 
 An invoice generator web application with real-time preview, PDF export, and AI assistant.
 
@@ -29,7 +29,7 @@ bun install
 bun run dev
 ```
 
-The app runs at `http://localhost:5001`.
+The app runs at `http://localhost:5003`.
 
 ## Deploy
 

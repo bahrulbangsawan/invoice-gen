@@ -2,7 +2,9 @@
   "meta": {
     "title": "Generator Faktur — Bahrul Bangsawan",
     "description": "Buat, pratinjau, dan unduh faktur profesional dalam format PDF. Generator faktur online gratis dengan pratinjau langsung dan asisten AI.",
-    "ogDescription": "Buat, pratinjau, dan unduh faktur profesional dalam format PDF. Generator faktur online gratis dengan pratinjau langsung."
+    "ogDescription": "Buat, pratinjau, dan unduh faktur profesional dalam format PDF. Generator faktur online gratis dengan pratinjau langsung.",
+    "siteName": "Generator Faktur",
+    "ogImageAlt": "Generator Faktur oleh Bahrul Bangsawan — pembuat faktur online gratis dengan pratinjau langsung"
   },
   "toolbar": {
     "importJson": "Impor JSON",
@@ -12,7 +14,21 @@
     "downloadPdf": "Unduh sebagai PDF",
     "downloadJson": "Unduh sebagai JSON",
     "clearAll": "Hapus Semua",
-    "mcpGuide": "Panduan MCP"
+    "mcp": "MCP"
+  },
+  "theme": {
+    "toLight": "Beralih ke mode terang",
+    "toDark": "Beralih ke mode gelap"
+  },
+  "confirm": {
+    "title": "Hapus semua data?",
+    "description": "Ini menghapus seluruh isi formulir saat ini. Tindakan ini tidak dapat dibatalkan.",
+    "cancel": "Batal",
+    "confirm": "Hapus semua"
+  },
+  "status": {
+    "saving": "Menyimpan…",
+    "saved": "Tersimpan"
   },
   "mcp": {
     "title": "Hubungkan melalui MCP",
@@ -123,6 +139,7 @@
     "setupAiAssistant": "Atur Asisten AI",
     "setAccentColor": "Atur warna aksen ke {color}",
     "switchLanguage": "Ganti bahasa",
+    "downloadInvoice": "Unduh faktur",
     "skipToContent": "Langsung ke konten utama",
     "removeItem": "Hapus item",
     "removeSubItem": "Hapus sub-item",
@@ -132,5 +149,8 @@
     "dragToReorder": "Seret untuk mengurutkan ulang",
     "generatingPdf": "Membuat PDF, mohon tunggu",
     "pdfReady": "PDF berhasil dibuat"
+  },
+  "errors": {
+    "logoProcess": "Tidak dapat memproses gambar itu. Coba berkas lain."
   }
 }
